@@ -1,0 +1,24 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+<MainLayout>
+  <section>
+    <h2 class="text-2xl font-bold mb-4">Buscar Vendedor</h2>
+    <div class="mb-4 flex items-center gap-4">
+      <input type="text" placeholder="Buscar vendedor..." class="border p-2 w-full rounded" />
+      <button class="bg-secondary text-white px-4 py-2 rounded">Filtros</button>
+    </div>
+    <div class="grid gap-4">
+      <div class="border p-4 rounded shadow">
+        <h3 class="font-bold text-lg">FIESTA GROUP</h3>
+        <p>Zona: Norte | 15 asientos disp. | Precio: $80-$200</p>
+        <a href="/ubicacion" class="text-blue-600 hover:underline">Ver Asientos</a>
+      </div>
+      <div class="border p-4 rounded shadow">
+        <h3 class="font-bold text-lg">CARNAVAL TOURS</h3>
+        <p>Zona: Sur | 50+ asientos disp. | Precio: $30-$90</p>
+        <a href="/ubicacion" class="text-blue-600 hover:underline">Ver Asientos</a>
+      </div>
+    </div>
+  </section>
+</MainLayout>

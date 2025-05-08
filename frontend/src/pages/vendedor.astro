@@ -1,0 +1,18 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+<MainLayout>
+  <section>
+    <h2 class="text-xl font-bold mb-2">Hola, Fiesta Group</h2>
+    <p class="mb-4">Ventas hoy: $1,850</p>
+    <h3 class="font-semibold mb-2">Asientos más vendidos (HOY)</h3>
+    <table class="w-full border">
+      <thead class="bg-gray-200">
+        <tr><th>Cuenta</th><th>Asiento</th><th>Tipo</th><th>Ventas</th><th>Total</th></tr>
+      </thead>
+      <tbody>
+        <tr class="text-center"><td>Usuario@gmail.com</td><td>B12</td><td>VIP</td><td>8</td><td>$1.200</td></tr>
+      </tbody>
+    </table>
+  </section>
+</MainLayout>
