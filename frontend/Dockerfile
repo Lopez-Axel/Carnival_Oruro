@@ -8,6 +8,6 @@ COPY package*.json ./
 RUN npm install
 
 # El código lo montamos con el volumen, no lo copiamos aquí
-
-EXPOSE 4321
-CMD ["npm", "run", "dev"]
+EXPOSE 3000
+CMD ["astro", "dev", "--host", "0.0.0.0", "--port", "3000"]
+# Exponemos el puerto 3000 para el frontend
