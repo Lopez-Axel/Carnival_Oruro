@@ -1,0 +1,281 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout>
+  <div class="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-indigo-900 via-purple-900 to-red-900 pt-20 px-4 md:px-8">
+    <div class="max-w-7xl mx-auto">
+      <!-- Header -->
+      <div class="bg-red-700 rounded-t-2xl shadow-lg">
+        <div class="p-4 flex justify-between items-center">
+          <h1 class="text-2xl font-bold text-white">GESTIÓN DE ASIENTOS - ZONA VIP</h1>
+          <div class="flex gap-2">
+            <button class="px-4 py-2 bg-red-800 hover:bg-red-600 text-white rounded-lg transition flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Exportar
+            </button>
+            <button class="px-4 py-2 bg-red-800 hover:bg-red-600 text-white rounded-lg transition flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Configuración
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 backdrop-blur-lg bg-white/10 rounded-b-2xl border border-white/20">
+        <!-- Lista de Asientos -->
+        <div class="bg-blue-900/40 p-4 rounded-xl">
+          <h3 class="text-white font-semibold mb-4">LISTA DE ASIENTOS</h3>
+          <div class="space-y-3">
+            {['B12', 'B13', 'A5'].map((asiento, index) => (
+              <div class="flex items-center justify-between bg-blue-900/30 p-3 rounded-lg hover:bg-blue-900/40 transition cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 bg-purple-600/50 rounded-lg flex items-center justify-center text-white font-medium">
+                    {asiento}
+                  </div>
+                  <div class="text-white">
+                    <div class="font-medium">{asiento}</div>
+                    <div class="text-sm opacity-70">${index === 2 ? '80' : '150'}</div>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button class="p-2 hover:bg-purple-600/50 rounded-lg transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                  <button class="p-2 hover:bg-purple-600/50 rounded-lg transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button class="p-2 hover:bg-red-600/50 rounded-lg transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <!-- Acciones de Lista -->
+          <div class="mt-4 flex gap-2">
+            <button class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Nuevo
+            </button>
+            <button class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Actualizar precios
+            </button>
+          </div>
+        </div>
+
+        <!-- Mapa Interactivo -->
+        <div class="bg-blue-900/40 p-4 rounded-xl">
+          <h3 class="text-white font-semibold mb-4">MAPA INTERACTIVO</h3>
+          <div class="space-y-4">
+            <!-- Fila 1 (C) -->
+            <div class="flex items-center gap-4">
+              <div class="w-20">
+                <span class="text-white font-medium">FILA 1</span>
+              </div>
+              <div class="grid grid-cols-9 gap-2 flex-1">
+                {['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9'].map((asiento) => (
+                  <button 
+                    class={`aspect-square rounded-lg border-2 ${
+                      ['C4', 'C5', 'C7', 'C8'].includes(asiento)
+                        ? 'bg-red-500/50 hover:bg-red-500/70 border-red-400/50' 
+                        : 'bg-green-500/50 hover:bg-green-500/70 border-green-400/50'
+                    } transition flex items-center justify-center text-white font-medium text-sm`}
+                  >
+                    {asiento}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <!-- Fila 2 (B) -->
+            <div class="flex items-center gap-4">
+              <div class="w-20">
+                <span class="text-white font-medium">FILA 2</span>
+              </div>
+              <div class="grid grid-cols-8 gap-2 flex-1">
+                {['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8'].map((asiento) => (
+                  <button 
+                    class={`aspect-square rounded-lg border-2 ${
+                      ['B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8'].includes(asiento)
+                        ? 'bg-red-500/50 hover:bg-red-500/70 border-red-400/50'
+                        : 'bg-green-500/50 hover:bg-green-500/70 border-green-400/50'
+                    } transition flex items-center justify-center text-white font-medium text-sm`}
+                  >
+                    {asiento}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <!-- Fila 3 (A) -->
+            <div class="flex items-center gap-4">
+              <div class="w-20">
+                <span class="text-white font-medium">FILA 3</span>
+              </div>
+              <div class="grid grid-cols-7 gap-2 flex-1">
+                {['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7'].map((asiento) => (
+                  <button 
+                    class={`aspect-square rounded-lg border-2 ${
+                      asiento === 'A5'
+                        ? 'bg-red-500/50 hover:bg-red-500/70 border-red-400/50'
+                        : 'bg-green-500/50 hover:bg-green-500/70 border-green-400/50'
+                    } transition flex items-center justify-center text-white font-medium text-sm`}
+                  >
+                    {asiento}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <!-- Leyenda -->
+          <div class="mt-6 space-y-2">
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 bg-green-500/50 border-2 border-green-400/50 rounded"></div>
+              <span class="text-white text-sm">Asiento disponible</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 bg-red-500/50 border-2 border-red-400/50 rounded"></div>
+              <span class="text-white text-sm">Asiento ocupado</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Servicios Adicionales -->
+      <div class="mt-6">
+        <div class="bg-blue-900/80 rounded-t-xl p-4">
+          <h2 class="text-xl font-bold text-white">SERVICIOS ADICIONALES</h2>
+        </div>
+        
+        <div class="backdrop-blur-lg bg-white/10 rounded-b-xl border border-white/20 p-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { nombre: 'Servicio VIP', precio: '$50', descripcion: 'Acceso a zona exclusiva' },
+              { nombre: 'Bebidas Premium', precio: '$30', descripcion: 'Barra libre premium' },
+              { nombre: 'Snacks', precio: '$20', descripcion: 'Selección de aperitivos' }
+            ].map(servicio => (
+              <div class="bg-blue-900/40 p-4 rounded-xl">
+                <div class="flex justify-between items-start mb-2">
+                  <h3 class="text-white font-semibold">{servicio.nombre}</h3>
+                  <span class="text-green-400 font-medium">{servicio.precio}</span>
+                </div>
+                <p class="text-white/70 text-sm mb-4">{servicio.descripcion}</p>
+                <div class="flex gap-2">
+                  <button class="flex-1 px-3 py-1.5 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded-lg transition text-sm">
+                    Editar
+                  </button>
+                  <button class="px-3 py-1.5 bg-red-600/50 hover:bg-red-600/70 text-white rounded-lg transition text-sm">
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <button class="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Agregar Servicio
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .backdrop-blur-lg {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  /* Custom focus styles */
+  button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+  }
+
+  /* Hover effects */
+  .hover-scale {
+    transition: transform 0.2s ease;
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+</style>
+
+<script>
+  // Función para manejar la selección de asientos
+  const asientos = document.querySelectorAll('.grid-cols-7 button');
+  asientos.forEach(asiento => {
+    asiento.addEventListener('click', () => {
+      // Aquí iría la lógica para seleccionar/editar el asiento
+      console.log('Asiento seleccionado:', asiento.textContent?.trim());
+    });
+  });
+
+  // Función para actualizar precios
+  document.querySelector('button:contains("Actualizar precios")')?.addEventListener('click', () => {
+    // Aquí iría la lógica para actualizar precios masivamente
+    console.log('Actualizando precios...');
+  });
+
+  // Función para agregar nuevo asiento
+  document.querySelector('button:contains("Nuevo")')?.addEventListener('click', () => {
+    // Aquí iría la lógica para abrir el modal de nuevo asiento
+    console.log('Abriendo modal de nuevo asiento...');
+  });
+
+  // Función para agregar nuevo servicio
+  document.querySelector('button:contains("Agregar Servicio")')?.addEventListener('click', () => {
+    // Aquí iría la lógica para abrir el modal de nuevo servicio
+    console.log('Abriendo modal de nuevo servicio...');
+  });
+
+  // Función para exportar datos
+  document.querySelector('button:contains("Exportar")')?.addEventListener('click', () => {
+    // Aquí iría la lógica para exportar datos
+    console.log('Exportando datos...');
+  });
+
+  // Animación para los elementos al hacer scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate-fade-in');
+      }
+    });
+  });
+
+  document.querySelectorAll('.backdrop-blur-lg').forEach((el) => {
+    observer.observe(el);
+  });
+</script> 

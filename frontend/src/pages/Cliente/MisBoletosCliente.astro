@@ -1,0 +1,199 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout>
+  <div class="min-h-screen bg-gradient-to-b from-indigo-900 via-indigo-900/95 to-purple-900/90 pt-24">
+    <!-- Header con contador de boletos -->
+    <div class="bg-red-700 text-white py-3 px-4 flex justify-between items-center shadow-lg sticky top-[4rem] z-10">
+      <h1 class="text-xl font-bold flex items-center gap-2">
+        MIS BOLETOS
+        <span class="bg-red-800 px-2 py-1 rounded-full text-sm">(3)</span>
+      </h1>
+      <div class="flex gap-2">
+        <button class="p-1 hover:bg-red-600 rounded" id="btnFiltrar">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+        </button>
+        <button class="p-1 hover:bg-red-600 rounded" id="btnExportar">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="max-w-3xl mx-auto px-4 py-6 space-y-4">
+      <!-- Filtros (inicialmente ocultos) -->
+      <div class="bg-blue-900/40 backdrop-blur-sm rounded-lg p-4 hidden" id="filtrosPanel">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-white text-sm mb-2">Estado</label>
+            <select class="w-full bg-blue-800/50 text-white rounded px-3 py-2 border border-blue-700">
+              <option value="todos">Todos</option>
+              <option value="confirmado">Confirmados</option>
+              <option value="pendiente">Pendientes</option>
+              <option value="usado">Usados</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-white text-sm mb-2">Fecha</label>
+            <select class="w-full bg-blue-800/50 text-white rounded px-3 py-2 border border-blue-700">
+              <option value="todos">Todas</option>
+              <option value="proximos">Próximos eventos</option>
+              <option value="pasados">Eventos pasados</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de boletos -->
+      <div class="space-y-4">
+        <!-- Boleto 1 -->
+        <div class="bg-blue-900/40 backdrop-blur-sm rounded-lg p-4 border-l-4 border-green-500">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="text-white">
+                <span class="text-sm font-mono">#XDL-209-783</span>
+                <h3 class="font-bold">FIESTA GROUP (25 Feb)</h3>
+                <p class="text-sm">Asientos: B12, B13 | VIP</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="bg-green-500 text-xs px-2 py-0.5 rounded-full">Confirmado</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="bg-blue-800/50 hover:bg-blue-700/50 text-white px-3 py-1 rounded text-sm">VER QR</button>
+              <button class="bg-blue-800/50 hover:bg-blue-700/50 text-white px-3 py-1 rounded text-sm">COMPARTIR</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boleto 2 -->
+        <div class="bg-blue-900/40 backdrop-blur-sm rounded-lg p-4 border-l-4 border-green-500">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="text-white">
+                <span class="text-sm font-mono">#KLP-441-002</span>
+                <h3 class="font-bold">CARNAVAL TOURS (26 Feb)</h3>
+                <p class="text-sm">Asientos: G5, G6 | General</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="bg-green-500 text-xs px-2 py-0.5 rounded-full">Confirmado</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="bg-blue-800/50 hover:bg-blue-700/50 text-white px-3 py-1 rounded text-sm">VER QR</button>
+              <button class="bg-blue-800/50 hover:bg-blue-700/50 text-white px-3 py-1 rounded text-sm">COMPARTIR</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boleto 3 (Ejemplo de boleto usado) -->
+        <div class="bg-blue-900/40 backdrop-blur-sm rounded-lg p-4 border-l-4 border-gray-500 opacity-75">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="text-white">
+                <span class="text-sm font-mono">#MNP-112-445</span>
+                <h3 class="font-bold">ENTRADA GENERAL (24 Feb)</h3>
+                <p class="text-sm">Asientos: A1 | General</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="bg-gray-500 text-xs px-2 py-0.5 rounded-full">Usado</span>
+                  <span class="text-xs text-gray-300">Usado el 24/02 20:15</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="bg-blue-800/50 hover:bg-blue-700/50 text-white px-3 py-1 rounded text-sm">DETALLES</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón flotante para soporte -->
+      <button class="fixed bottom-6 right-6 bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Toggle filtros
+    const btnFiltrar = document.getElementById('btnFiltrar');
+    const filtrosPanel = document.getElementById('filtrosPanel');
+    
+    btnFiltrar?.addEventListener('click', () => {
+      filtrosPanel?.classList.toggle('hidden');
+    });
+
+    // Exportar funcionalidad
+    document.getElementById('btnExportar')?.addEventListener('click', () => {
+      const options = {
+        suggestedName: 'mis-boletos.pdf',
+        types: [{
+          description: 'PDF Document',
+          accept: { 'application/pdf': ['.pdf'] },
+        }],
+      };
+      // Aquí iría la lógica de exportación real
+      alert('Exportando boletos...');
+    });
+
+    // Funcionalidad de los botones VER QR
+    document.querySelectorAll('button').forEach(button => {
+      if (button.textContent === 'VER QR') {
+        button.addEventListener('click', (e) => {
+          const ticketId = e.target.closest('div.bg-blue-900\\/40').querySelector('.font-mono').textContent;
+          window.location.href = `/CompraExitosa?id=${ticketId}`;
+        });
+      }
+    });
+
+    // Funcionalidad de compartir
+    document.querySelectorAll('button').forEach(button => {
+      if (button.textContent === 'COMPARTIR') {
+        button.addEventListener('click', async (e) => {
+          const ticketInfo = e.target.closest('div.bg-blue-900\\/40').querySelector('h3').textContent;
+          try {
+            await navigator.share({
+              title: 'Mi boleto para Carnaval de Oruro 2025',
+              text: `¡Tengo mi entrada para ${ticketInfo}!`,
+              url: window.location.href
+            });
+          } catch (err) {
+            console.log('Error al compartir:', err);
+          }
+        });
+      }
+    });
+
+    // Soporte - Chat o WhatsApp
+    document.querySelector('button.fixed')?.addEventListener('click', () => {
+      window.open('https://wa.me/1234567890?text=Necesito%20ayuda%20con%20mis%20boletos', '_blank');
+    });
+  });
+</script>
+
+<style>
+  /* Animaciones */
+  @keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .bg-blue-900\/40 {
+    animation: slideIn 0.3s ease-out forwards;
+  }
+
+  /* Hover effects */
+  .bg-blue-900\/40:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+  }
+</style>

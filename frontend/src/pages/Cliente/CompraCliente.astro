@@ -1,0 +1,167 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout>
+  <div class="min-h-screen bg-gradient-to-b from-indigo-900 via-indigo-900/95 to-purple-900/90 pt-24">
+    <!-- Título de la página -->
+    <div class="bg-red-700 text-white py-2 px-4 flex justify-between items-center shadow-lg">
+      <h1 class="text-xl font-bold">RESUMEN DE COMPRA</h1>
+      <div class="flex gap-2">
+        <button class="p-1 hover:bg-red-600 rounded">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="max-w-2xl mx-auto px-4 py-8">
+      <!-- Resumen de compra -->
+      <div class="bg-blue-900/40 backdrop-blur-sm rounded-lg p-6 mb-6">
+        <div class="space-y-3 text-white">
+          <div class="flex justify-between items-center">
+            <span>2 x Asiento B12 (VIP)</span>
+            <span>$300</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span>1 x Servicio de Mesa</span>
+            <span>$50</span>
+          </div>
+          <div class="flex justify-between items-center text-green-400">
+            <span>Promo: "CARNAVAL10"</span>
+            <span>-$35</span>
+          </div>
+          <div class="border-t border-white/20 pt-3 flex justify-between items-center font-bold text-lg">
+            <span>TOTAL:</span>
+            <span>$315</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de pago -->
+      <div class="bg-blue-900/40 backdrop-blur-sm rounded-lg p-6">
+        <form class="space-y-6" id="payment-form">
+          <!-- Información de la tarjeta -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-white mb-2">Número de Tarjeta</label>
+              <div class="relative">
+                <input 
+                  type="text" 
+                  class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                  placeholder="**** **** **** ****"
+                  maxlength="19"
+                  id="card-number"
+                >
+                <div class="absolute right-3 top-2">
+                  <img src="/images/card-icons.png" alt="Tarjetas aceptadas" class="h-6">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-white mb-2">Fecha de Vencimiento</label>
+                <input 
+                  type="text" 
+                  class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                  placeholder="MM/YY"
+                  maxlength="5"
+                >
+              </div>
+              <div>
+                <label class="block text-white mb-2">CVV</label>
+                <input 
+                  type="text" 
+                  class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                  placeholder="123"
+                  maxlength="4"
+                >
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-white mb-2">Nombre en la Tarjeta</label>
+              <input 
+                type="text" 
+                class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                placeholder="Como aparece en la tarjeta"
+              >
+            </div>
+          </div>
+
+          <!-- Métodos de pago alternativos -->
+          <div class="flex justify-center gap-4 py-4">
+            <button type="button" class="bg-white px-6 py-2 rounded flex items-center gap-2 hover:bg-gray-100 transition-colors">
+              <img src="/images/paypal-logo.png" alt="PayPal" class="h-5">
+            </button>
+            <button type="button" class="bg-white px-6 py-2 rounded flex items-center gap-2 hover:bg-gray-100 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              <span>Transferencia</span>
+            </button>
+          </div>
+
+          <!-- Botón de pago -->
+          <button 
+            type="submit"
+            class="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            PAGAR AHORA
+          </button>
+        </form>
+
+        <!-- Información de seguridad -->
+        <div class="mt-6 flex items-center justify-center gap-2 text-gray-400 text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          Pago seguro con cifrado SSL
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  // Formateo automático del número de tarjeta
+  document.getElementById('card-number')?.addEventListener('input', (e) => {
+    const input = e.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
+    let formattedValue = '';
+    
+    for (let i = 0; i < value.length; i++) {
+      if (i > 0 && i % 4 === 0) {
+        formattedValue += ' ';
+      }
+      formattedValue += value[i];
+    }
+    
+    input.value = formattedValue;
+  });
+
+  // Prevenir envío del formulario (aquí se integraría con el backend)
+  document.getElementById('payment-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    // Aquí iría la lógica de procesamiento del pago
+    alert('¡Procesando pago! Esta es una simulación.');
+  });
+</script>
+
+<style>
+  /* Estilos adicionales si son necesarios */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+</style>

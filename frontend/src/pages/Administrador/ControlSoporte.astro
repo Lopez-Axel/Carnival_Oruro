@@ -1,0 +1,285 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout>
+  <div class="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-indigo-900 via-purple-900 to-red-900 pt-20 px-4 md:px-8">
+    <div class="max-w-4xl mx-auto">
+      <!-- Header -->
+      <div class="bg-red-700 rounded-t-2xl shadow-lg">
+        <div class="p-4 flex justify-between items-center">
+          <h1 class="text-2xl font-bold text-white">CREAR NUEVO EVENTO</h1>
+          <div class="flex gap-2">
+            <button class="p-2 bg-red-800 hover:bg-red-600 text-white rounded-lg transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </button>
+            <button class="p-2 bg-red-800 hover:bg-red-600 text-white rounded-lg transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event Form -->
+      <div class="backdrop-blur-lg bg-white/10 rounded-b-2xl border border-white/20 p-6">
+        <form id="eventForm" class="space-y-6">
+          <!-- Nombre del Evento -->
+          <div class="bg-blue-900/40 rounded-lg p-4">
+            <div class="flex items-center gap-2 text-white mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <label class="font-medium">NOMBRE:</label>
+            </div>
+            <input 
+              type="text" 
+              value="Carnaval 2024 - Día 3"
+              class="w-full bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            />
+          </div>
+
+          <!-- Fecha y Horario -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-blue-900/40 rounded-lg p-4">
+              <div class="flex items-center gap-2 text-white mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <label class="font-medium">FECHA:</label>
+              </div>
+              <div class="flex gap-2">
+                <input 
+                  type="date" 
+                  value="2024-02-25"
+                  class="flex-1 bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+                <input 
+                  type="date" 
+                  value="2024-02-26"
+                  class="flex-1 bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+              </div>
+            </div>
+
+            <div class="bg-blue-900/40 rounded-lg p-4">
+              <div class="flex items-center gap-2 text-white mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <label class="font-medium">HORARIO:</label>
+              </div>
+              <div class="flex gap-2">
+                <input 
+                  type="time" 
+                  value="14:00"
+                  class="flex-1 bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+                <input 
+                  type="time" 
+                  value="23:00"
+                  class="flex-1 bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Zonas Disponibles -->
+          <div class="bg-blue-900/40 rounded-lg p-4">
+            <div class="flex items-center gap-2 text-white mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <label class="font-medium">ZONAS DISPONIBLES:</label>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                            <label class="flex items-center gap-2 cursor-pointer">                <input type="checkbox" checked>                <span class="text-white">General</span>              </label>              <label class="flex items-center gap-2 cursor-pointer">                <input type="checkbox" checked>                <span class="text-white">VIP</span>              </label>              <label class="flex items-center gap-2 cursor-pointer">                <input type="checkbox" checked>                <span class="text-white">Premium</span>              </label>
+            </div>
+          </div>
+
+          <!-- Actividades -->
+          <div class="bg-blue-900/40 rounded-lg p-4">
+            <div class="flex items-center justify-between text-white mb-4">
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <label class="font-medium">ACTIVIDADES:</label>
+              </div>
+              <button type="button" id="addActivityBtn" class="text-blue-300 hover:text-blue-200 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
+            </div>
+            <div id="activitiesList" class="space-y-2">
+              <div class="flex items-center gap-2">
+                <input 
+                  type="text" 
+                  value="1. Desfile de comparsas 1 (20:00-21:30)"
+                  class="flex-1 bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+                <button type="button" class="text-red-400 hover:text-red-300 transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+              <div class="flex items-center gap-2">
+                <input 
+                  type="text" 
+                  value="2. Desfile de comparsas 2 (21:30-23:00)"
+                  class="flex-1 bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+                <button type="button" class="text-red-400 hover:text-red-300 transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones de Acción -->
+          <div class="flex justify-end gap-4 pt-4">
+            <button type="button" id="draftBtn" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              Guardar borrador
+            </button>
+            <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Publicar evento
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .backdrop-blur-lg {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  /* Custom date/time input styles */
+  input[type="date"],
+  input[type="time"] {
+    color-scheme: dark;
+  }
+</style>
+
+<script>
+  // Elementos del DOM
+  const eventForm = document.getElementById('eventForm');
+  const addActivityBtn = document.getElementById('addActivityBtn');
+  const activitiesList = document.getElementById('activitiesList');
+  const draftBtn = document.getElementById('draftBtn');
+
+  // Estilizar checkboxes después de que el DOM esté cargado
+  document.addEventListener('DOMContentLoaded', () => {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.classList.add(
+        'h-5',
+        'w-5',
+        'rounded',
+        'border-blue-300/30',
+        'bg-blue-900/40',
+        'text-purple-600',
+        'focus:ring-2',
+        'focus:ring-purple-500',
+        'focus:ring-offset-0',
+        'transition-colors',
+        'duration-200'
+      );
+    });
+  });
+
+  // Función para agregar nueva actividad
+  function addActivity() {
+    const activityCount = activitiesList?.children.length || 0;
+    const activityDiv = document.createElement('div');
+    activityDiv.className = 'flex items-center gap-2';
+    activityDiv.innerHTML = `
+      <input 
+        type="text" 
+        placeholder="Nueva actividad..."
+        class="flex-1 bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+      />
+      <button type="button" class="text-red-400 hover:text-red-300 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </button>
+    `;
+    
+    // Agregar evento para eliminar actividad
+    const deleteBtn = activityDiv.querySelector('button');
+    deleteBtn?.addEventListener('click', () => {
+      activityDiv.remove();
+    });
+
+    activitiesList?.appendChild(activityDiv);
+  }
+
+  // Event Listeners
+  addActivityBtn?.addEventListener('click', addActivity);
+
+  // Manejar envío del formulario
+  eventForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    // Aquí iría la lógica para publicar el evento
+    console.log('Publicando evento...');
+  });
+
+  // Manejar guardado de borrador
+  draftBtn?.addEventListener('click', () => {
+    // Aquí iría la lógica para guardar borrador
+    console.log('Guardando borrador...');
+  });
+
+  // Manejar eliminación de actividades existentes
+  document.querySelectorAll('#activitiesList button').forEach(button => {
+    button.addEventListener('click', () => {
+      button.closest('div').remove();
+    });
+  });
+
+  // Validación de fechas
+  const dateInputs = document.querySelectorAll('input[type="date"]');
+  dateInputs.forEach(input => {
+    input.addEventListener('change', () => {
+      const [startDate, endDate] = Array.from(dateInputs);
+      if (startDate && endDate && startDate.value > endDate.value) {
+        endDate.value = startDate.value;
+      }
+    });
+  });
+
+  // Validación de horarios
+  const timeInputs = document.querySelectorAll('input[type="time"]');
+  timeInputs.forEach(input => {
+    input.addEventListener('change', () => {
+      const [startTime, endTime] = Array.from(timeInputs);
+      if (startTime && endTime && startTime.value > endTime.value) {
+        endTime.value = startTime.value;
+      }
+    });
+  });
+</script> 

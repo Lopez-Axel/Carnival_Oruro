@@ -1,0 +1,243 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout>
+  <div class="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-indigo-900 via-purple-900 to-red-900 pt-20 px-4 md:px-8">
+    <div class="max-w-4xl mx-auto">
+      <!-- Header -->
+      <div class="bg-red-700 rounded-t-2xl shadow-lg">
+        <div class="p-4 flex justify-between items-center">
+          <h1 class="text-2xl font-bold text-white">SOPORTE TÉCNICO</h1>
+          <div class="flex gap-2">
+            <button id="newTicketBtn" class="px-4 py-2 bg-red-800 hover:bg-red-600 text-white rounded-lg transition flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Nuevo Ticket
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Interface -->
+      <div class="backdrop-blur-lg bg-white/10 rounded-b-2xl border border-white/20 p-6">
+        <!-- Ticket Info -->
+        <div class="bg-blue-900/40 rounded-lg p-4 mb-6">
+          <div class="flex items-center justify-between text-white">
+            <div class="flex items-center gap-3">
+              <span class="bg-green-500 h-3 w-3 rounded-full"></span>
+              <h2 class="font-semibold">TICKET #AL-209</h2>
+            </div>
+            <div class="flex items-center gap-4">
+              <button class="text-yellow-400 hover:text-yellow-300 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              </button>
+              <button class="text-red-400 hover:text-red-300 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chatMessages" class="space-y-4 h-[400px] overflow-y-auto mb-6 p-4 bg-blue-900/20 rounded-lg">
+          <!-- Sistema -->
+          <div class="flex justify-center">
+            <span class="bg-gray-800/50 text-gray-300 px-4 py-1 rounded-full text-sm">
+              Conectado con Ana (Soporte técnico)
+            </span>
+          </div>
+
+          <!-- Mensaje del sistema -->
+          <div class="flex justify-center">
+            <span class="bg-gray-800/50 text-gray-300 px-4 py-1 rounded-full text-sm">
+              12:30 PM
+            </span>
+          </div>
+
+          <!-- Mensaje del soporte -->
+          <div class="flex gap-3">
+            <div class="flex-shrink-0">
+              <div class="h-8 w-8 rounded-full bg-red-600 flex items-center justify-center">
+                <span class="text-white font-semibold">A</span>
+              </div>
+            </div>
+            <div class="bg-red-900/40 text-white rounded-lg p-3 max-w-[80%]">
+              <p class="text-sm font-semibold mb-1">Ana (Soporte)</p>
+              <p>¿En qué puedo ayudarte hoy?</p>
+            </div>
+          </div>
+
+          <!-- Mensaje del vendedor -->
+          <div class="flex gap-3 justify-end">
+            <div class="bg-blue-900/40 text-white rounded-lg p-3 max-w-[80%]">
+              <p class="text-sm font-semibold mb-1">Tú</p>
+              <p>Necesito ayuda con la gestión de asientos</p>
+            </div>
+            <div class="flex-shrink-0">
+              <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                <span class="text-white font-semibold">V</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="bg-blue-900/40 rounded-lg p-4">
+          <form id="chatForm" class="flex gap-4">
+            <div class="flex-1">
+              <input 
+                type="text" 
+                id="messageInput"
+                placeholder="Escribe tu mensaje aquí..."
+                class="w-full bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              />
+            </div>
+            <div class="flex gap-2">
+              <button type="button" id="attachButton" class="p-2 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded-lg transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              </button>
+              <button type="button" id="screenshotButton" class="p-2 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded-lg transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button type="submit" class="px-6 bg-green-600 hover:bg-green-700 text-white rounded-lg transition flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .backdrop-blur-lg {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  /* Custom scrollbar */
+  #chatMessages {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.5) rgba(30, 58, 138, 0.3);
+  }
+
+  #chatMessages::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  #chatMessages::-webkit-scrollbar-track {
+    background: rgba(30, 58, 138, 0.3);
+    border-radius: 4px;
+  }
+
+  #chatMessages::-webkit-scrollbar-thumb {
+    background-color: rgba(139, 92, 246, 0.5);
+    border-radius: 4px;
+  }
+</style>
+
+<script>
+  // Elementos del DOM
+  const chatForm = document.getElementById('chatForm');
+  const messageInput = document.getElementById('messageInput');
+  const chatMessages = document.getElementById('chatMessages');
+  const attachButton = document.getElementById('attachButton');
+  const screenshotButton = document.getElementById('screenshotButton');
+  const newTicketBtn = document.getElementById('newTicketBtn');
+
+  // Función para agregar un mensaje al chat
+  function addMessage(message, isUser = true) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `flex gap-3 ${isUser ? 'justify-end' : ''}`;
+    
+    const messageContent = `
+      ${isUser ? '' : `
+        <div class="flex-shrink-0">
+          <div class="h-8 w-8 rounded-full bg-red-600 flex items-center justify-center">
+            <span class="text-white font-semibold">A</span>
+          </div>
+        </div>
+      `}
+      <div class="bg-${isUser ? 'blue' : 'red'}-900/40 text-white rounded-lg p-3 max-w-[80%]">
+        <p class="text-sm font-semibold mb-1">${isUser ? 'Tú' : 'Ana (Soporte)'}</p>
+        <p>${message}</p>
+      </div>
+      ${isUser ? `
+        <div class="flex-shrink-0">
+          <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+            <span class="text-white font-semibold">V</span>
+          </div>
+        </div>
+      ` : ''}
+    `;
+    
+    messageDiv.innerHTML = messageContent;
+    chatMessages?.appendChild(messageDiv);
+    chatMessages?.scrollTo(0, chatMessages.scrollHeight);
+  }
+
+  // Manejar envío de mensajes
+  chatForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const message = messageInput?.value.trim();
+    if (message) {
+      addMessage(message, true);
+      messageInput.value = '';
+      
+      // Simular respuesta del soporte (para demo)
+      setTimeout(() => {
+        addMessage('Entiendo tu consulta. ¿Podrías especificar qué problema tienes exactamente con la gestión de asientos?', false);
+      }, 1000);
+    }
+  });
+
+  // Manejar adjuntos
+  attachButton?.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,.pdf,.doc,.docx';
+    input.click();
+    
+    input.onchange = (e) => {
+      const file = e.target?.files?.[0];
+      if (file) {
+        addMessage(`Archivo adjunto: ${file.name}`, true);
+      }
+    };
+  });
+
+  // Manejar capturas de pantalla
+  screenshotButton?.addEventListener('click', () => {
+    // Aquí iría la lógica para capturar pantalla
+    addMessage('Has solicitado compartir tu pantalla', true);
+  });
+
+  // Manejar nuevo ticket
+  newTicketBtn?.addEventListener('click', () => {
+    // Aquí iría la lógica para crear nuevo ticket
+    console.log('Creando nuevo ticket...');
+  });
+
+  // Auto-scroll al cargar
+  window.addEventListener('load', () => {
+    chatMessages?.scrollTo(0, chatMessages.scrollHeight);
+  });
+</script> 

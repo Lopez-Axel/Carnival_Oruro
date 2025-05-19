@@ -1,0 +1,218 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout>
+  <div class="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-indigo-900 via-purple-900 to-red-900 pt-20 px-4 md:px-8">
+    <div class="max-w-md mx-auto">
+      <!-- Header -->
+      <div class="bg-red-700 rounded-t-2xl shadow-lg">
+        <div class="p-4 flex justify-between items-center">
+          <h1 class="text-2xl font-bold text-white">ESCÁNER DE ENTRADAS</h1>
+          <div class="flex gap-2">
+            <button id="toggleFlashBtn" class="p-2 bg-red-800 hover:bg-red-600 text-white rounded-lg transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </button>
+            <button id="switchCameraBtn" class="p-2 bg-red-800 hover:bg-red-600 text-white rounded-lg transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4v8M7 4v8M3 12h8m0 0V8m0 4h4m4 0h3m-3 8v-8m0 8h3m-3 0h-3" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scanner Interface -->
+      <div class="backdrop-blur-lg bg-white/10 rounded-b-2xl border border-white/20 p-6">
+        <!-- Scanner Viewport -->
+        <div class="relative aspect-square mb-6 rounded-lg overflow-hidden bg-blue-900/40">
+          <div id="scanner-container" class="absolute inset-0">
+            <!-- El video del escáner se insertará aquí -->
+          </div>
+          <!-- Scanner Overlay -->
+          <div class="absolute inset-0 border-2 border-dashed border-white/30 rounded-lg"></div>
+          <!-- Scanner Guide -->
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="w-3/4 h-3/4 border-2 border-blue-400/50 rounded-lg">
+              <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-400"></div>
+              <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-blue-400"></div>
+              <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-blue-400"></div>
+              <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-400"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ticket Info -->
+        <div id="ticketInfo" class="bg-blue-900/40 rounded-lg p-4 mb-4 hidden">
+          <p class="text-gray-300 text-sm mb-1">Validado: <span id="ticketId" class="text-white font-medium">#AL-201783 (VIP - Fiesta Group)</span></p>
+          <p class="text-gray-300 text-sm">Asientos: <span id="seatInfo" class="text-white font-medium">B12, B13 | 25/02/2024 20:00</span></p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-3">
+          <button id="markUsedBtn" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition flex items-center justify-center gap-2 hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Marcar como usado
+          </button>
+          <button id="rejectBtn" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center justify-center gap-2 hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Rechazar entrada
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scanLine {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(100%); }
+    100% { transform: translateY(0); }
+  }
+
+  .backdrop-blur-lg {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  #scanner-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #60A5FA, transparent);
+    animation: scanLine 3s linear infinite;
+  }
+</style>
+
+<script>
+  // Elementos del DOM
+  const scannerContainer = document.getElementById('scanner-container');
+  const ticketInfo = document.getElementById('ticketInfo');
+  const markUsedBtn = document.getElementById('markUsedBtn');
+  const rejectBtn = document.getElementById('rejectBtn');
+  const toggleFlashBtn = document.getElementById('toggleFlashBtn');
+  const switchCameraBtn = document.getElementById('switchCameraBtn');
+
+  let currentStream = null;
+  let isFlashOn = false;
+
+  // Función para iniciar la cámara
+  async function startCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      
+      currentStream = stream;
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.setAttribute('playsinline', true); // Requerido para iOS
+      video.classList.add('w-full', 'h-full', 'object-cover');
+      
+      scannerContainer?.appendChild(video);
+      video.play();
+
+      // Aquí iría la lógica de detección de QR
+      // Por ahora simularemos una detección
+      setTimeout(simulateQRDetection, 3000);
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+    }
+  }
+
+  // Función para simular la detección de un QR
+  function simulateQRDetection() {
+    ticketInfo?.classList.remove('hidden');
+    markUsedBtn?.classList.remove('hidden');
+    rejectBtn?.classList.remove('hidden');
+  }
+
+  // Función para alternar la linterna
+  async function toggleFlash() {
+    if (!currentStream) return;
+    
+    const track = currentStream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities();
+    
+    if (capabilities.torch) {
+      isFlashOn = !isFlashOn;
+      try {
+        await track.applyConstraints({
+          advanced: [{ torch: isFlashOn }]
+        });
+        toggleFlashBtn?.classList.toggle('bg-yellow-500');
+      } catch (error) {
+        console.error('Error toggling flash:', error);
+      }
+    }
+  }
+
+  // Función para cambiar de cámara
+  async function switchCamera() {
+    if (currentStream) {
+      currentStream.getTracks().forEach(track => track.stop());
+    }
+
+    try {
+      const newFacingMode = currentStream?.getVideoTracks()[0]?.getSettings().facingMode === 'environment' ? 'user' : 'environment';
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newFacingMode }
+      });
+      
+      currentStream = stream;
+      const video = scannerContainer?.querySelector('video');
+      if (video) {
+        video.srcObject = stream;
+      }
+    } catch (error) {
+      console.error('Error switching camera:', error);
+    }
+  }
+
+  // Event Listeners
+  document.addEventListener('DOMContentLoaded', startCamera);
+  toggleFlashBtn?.addEventListener('click', toggleFlash);
+  switchCameraBtn?.addEventListener('click', switchCamera);
+
+  markUsedBtn?.addEventListener('click', () => {
+    // Aquí iría la lógica para marcar el ticket como usado
+    markUsedBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      Entrada validada
+    `;
+    markUsedBtn.disabled = true;
+    markUsedBtn.classList.add('bg-green-800');
+    rejectBtn?.classList.add('hidden');
+  });
+
+  rejectBtn?.addEventListener('click', () => {
+    // Aquí iría la lógica para rechazar el ticket
+    ticketInfo?.classList.add('hidden');
+    markUsedBtn?.classList.add('hidden');
+    rejectBtn?.classList.add('hidden');
+  });
+
+  // Cleanup al desmontar
+  window.addEventListener('beforeunload', () => {
+    if (currentStream) {
+      currentStream.getTracks().forEach(track => track.stop());
+    }
+  });
+</script> 

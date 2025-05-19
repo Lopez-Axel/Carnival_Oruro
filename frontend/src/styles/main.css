@@ -1,0 +1,263 @@
+/* Configuración base */
+:root {
+  --color-primary: #000080; /* Azul marino */
+  --color-secondary: #800000; /* Rojo sangre */
+  --gradient-primary: linear-gradient(135deg, #000080 0%, #0000a0 100%);
+  --gradient-secondary: linear-gradient(135deg, #800000 0%, #a00000 100%);
+  --gradient-overlay: linear-gradient(to bottom, rgba(0, 0, 128, 0.9), rgba(128, 0, 0, 0.7));
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--gradient-primary);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  background: var(--gradient-primary);
+  color: white;
+}
+
+/* Estilos para imágenes y secciones */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+section {
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+}
+
+/* Clases utilitarias */
+.full-bleed-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 100vh;
+}
+
+.main-container {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Gradientes y overlays */
+.overlay-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 128, 0.8) 0%,
+    rgba(128, 0, 0, 0.6) 100%
+  );
+  mix-blend-mode: multiply;
+}
+
+/* Efectos de texto */
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Animaciones */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 1s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos para el hero section */
+.hero-title {
+  font-size: clamp(2.5rem, 8vw, 6rem);
+  font-weight: bold;
+  color: transparent;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(45deg, #fff, #a00000);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: clamp(1.2rem, 4vw, 1.5rem);
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.hero-button {
+  display: inline-block;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  color: white;
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+  background-size: 200% auto;
+}
+
+.hero-button:hover {
+  background-position: right center;
+  border-color: white;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+/* Estilos para las tarjetas de eventos */
+.event-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.event-card img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.event-card:hover img {
+  transform: scale(1.05);
+}
+
+.event-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-overlay);
+  opacity: 0.85;
+}
+
+.event-card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 2rem;
+  width: 100%;
+}
+
+.event-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.event-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.event-info-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  opacity: 0.8;
+}
+
+.event-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.event-button {
+  padding: 0.5rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  transition: all 0.3s ease;
+  background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+  background-size: 200% auto;
+  color: white;
+}
+
+.event-button:hover {
+  background-position: right center;
+  border-color: white;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+/* Título de la sección */
+.section-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 3rem;
+  color: transparent;
+  background: linear-gradient(45deg, #fff, #a00000);
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: gradient 8s ease infinite;
+  background-size: 200% auto;
+}
+
+/* Estilos para la navegación */
+.nav-link {
+  color: white;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #FCD34D;
+}
+
+/* Media queries */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: clamp(2rem, 6vw, 4rem);
+  }
+
+  .hero-subtitle {
+    font-size: clamp(1rem, 3vw, 1.25rem);
+  }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+} 

@@ -1,0 +1,181 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout>
+  <div class="min-h-screen bg-gradient-to-b from-indigo-900 via-indigo-900/95 to-purple-900/90 pt-24">
+    <!-- Título de la página -->
+    <div class="bg-red-700 text-white py-2 px-4 flex justify-between items-center shadow-lg">
+      <h1 class="text-xl font-bold">¡COMPRA EXITOSA! #XDL-209-783</h1>
+      <div class="flex gap-2">
+        <button class="p-1 hover:bg-red-600 rounded" id="btnCompartir">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="max-w-2xl mx-auto px-4 py-8">
+      <!-- Imagen del evento -->
+      <div class="relative rounded-lg overflow-hidden mb-6 shadow-xl">
+        <img 
+          src="/images/Ejemplo.jpeg" 
+          alt="Carnaval 2025" 
+          class="w-full h-48 object-cover"
+        >
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-center items-center text-white">
+          <h2 class="text-4xl font-bold mb-2">CARNAVAL</h2>
+          <p class="text-2xl font-semibold">2025 VIP</p>
+        </div>
+      </div>
+
+      <!-- Detalles de la compra -->
+      <div class="bg-blue-900/40 backdrop-blur-sm rounded-lg p-6 mb-6">
+        <div class="space-y-4 text-white">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5h14l2 8H3l2-8z"/>
+            </svg>
+            <span class="font-semibold">ASIENTOS:</span>
+            <span>B12, B13</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <span class="font-semibold">FECHA:</span>
+            <span>25 Feb 2024 | 20:00 hrs</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="font-semibold">VALIDAR EN:</span>
+            <span>Entrada Norte</span>
+            <span class="bg-green-500 text-xs px-2 py-1 rounded-full">Accesible</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Code -->
+      <div class="bg-white rounded-lg p-6 mb-6 flex justify-center">
+        <div class="text-center">
+          <img 
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=XDL-209-783`}
+            alt="Código QR del boleto"
+            class="inline-block"
+            width="200"
+            height="200"
+          />
+          <p class="text-sm text-gray-600 mt-2">Muestra este código en la entrada</p>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="grid grid-cols-3 gap-4">
+        <button class="flex flex-col items-center justify-center bg-blue-900/40 backdrop-blur-sm rounded-lg p-4 text-white hover:bg-blue-800/40 transition-colors" id="btnEmail">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          Enviar por correo
+        </button>
+        <button class="flex flex-col items-center justify-center bg-blue-900/40 backdrop-blur-sm rounded-lg p-4 text-white hover:bg-blue-800/40 transition-colors" id="btnWhatsApp">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+          </svg>
+          WhatsApp
+        </button>
+        <button class="flex flex-col items-center justify-center bg-blue-900/40 backdrop-blur-sm rounded-lg p-4 text-white hover:bg-blue-800/40 transition-colors" id="btnPDF">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+          </svg>
+          PDF
+        </button>
+      </div>
+
+      <!-- Calendario -->
+      <button class="w-full mt-6 bg-green-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        Agregar al Calendario
+      </button>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Botón de compartir
+    document.getElementById('btnCompartir')?.addEventListener('click', async () => {
+      try {
+        await navigator.share({
+          title: 'Boletos Carnaval 2025',
+          text: '¡He comprado mis entradas para el Carnaval de Oruro 2025!',
+          url: window.location.href
+        });
+      } catch (err) {
+        console.log('Error al compartir:', err);
+      }
+    });
+
+    // Botón de WhatsApp
+    document.getElementById('btnWhatsApp')?.addEventListener('click', () => {
+      const text = encodeURIComponent('¡He comprado mis entradas para el Carnaval de Oruro 2025! Código: XDL-209-783');
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    });
+
+    // Botón de Email
+    document.getElementById('btnEmail')?.addEventListener('click', () => {
+      const subject = encodeURIComponent('Boletos Carnaval de Oruro 2025');
+      const body = encodeURIComponent('¡He comprado mis entradas!\n\nCódigo: XDL-209-783\nAsientos: B12, B13\nFecha: 25 Feb 2024 | 20:00 hrs');
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    });
+
+    // Botón de Calendario
+    document.querySelector('button:last-child')?.addEventListener('click', () => {
+      const event = {
+        title: 'Carnaval de Oruro 2025',
+        start: '2025-02-25T20:00:00',
+        duration: '4:00',
+        description: 'Asientos: B12, B13\nEntrada Norte\nCódigo: XDL-209-783',
+        location: 'Oruro, Bolivia'
+      };
+
+      // Crear archivo ICS
+      const icsFile = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${event.title}
+DTSTART:${event.start.replace(/[-:]/g, '')}
+DURATION:PT${event.duration.replace(':', 'H')}M
+DESCRIPTION:${event.description}
+LOCATION:${event.location}
+END:VEVENT
+END:VCALENDAR`;
+
+      const blob = new Blob([icsFile], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'carnaval-2025.ics';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  });
+</script>
+
+<style>
+  /* Animación de entrada */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .max-w-2xl {
+    animation: fadeIn 0.5s ease-out;
+  }
+</style> 

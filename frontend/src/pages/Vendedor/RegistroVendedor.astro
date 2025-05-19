@@ -1,0 +1,305 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout>
+  <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-red-900 pt-20">
+    <!-- Decorative background elements -->
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute -top-40 -left-40 w-80 h-80 bg-yellow-500 rounded-full opacity-20 blur-3xl"></div>
+      <div class="absolute top-40 -right-40 w-80 h-80 bg-red-600 rounded-full opacity-20 blur-3xl"></div>
+      <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-40 bg-purple-800 opacity-30 blur-3xl"></div>
+    </div>
+
+    <!-- Registration Card -->
+    <div class="relative w-full max-w-2xl mx-4">
+      <!-- Header -->
+      <div class="bg-red-700 text-white p-4 rounded-t-2xl shadow-lg flex justify-between items-center">
+        <h1 class="text-2xl font-bold">REGISTRO DE VENDEDOR</h1>
+        <div class="flex gap-2">
+          <button class="p-2 hover:bg-red-600 rounded-full transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Glass Card -->
+      <div class="backdrop-blur-lg bg-white/10 rounded-b-2xl p-8 shadow-xl border border-white/20">
+        <form class="space-y-6" id="vendorForm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Left Column -->
+            <div class="space-y-6">
+              <!-- Nombre completo -->
+              <div>
+                <label class="block text-sm font-medium text-purple-200 mb-2" for="nombre">
+                  Nombre completo
+                </label>
+                <input
+                  type="text"
+                  id="nombre"
+                  class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  required
+                />
+              </div>
+
+              <!-- Correo electrónico -->
+              <div>
+                <label class="block text-sm font-medium text-purple-200 mb-2" for="email">
+                  Correo electrónico
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  required
+                />
+              </div>
+
+              <!-- Teléfono -->
+              <div>
+                <label class="block text-sm font-medium text-purple-200 mb-2" for="telefono">
+                  Teléfono
+                </label>
+                <input
+                  type="tel"
+                  id="telefono"
+                  class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  required
+                />
+              </div>
+
+              <!-- Contraseña -->
+              <div>
+                <label class="block text-sm font-medium text-purple-200 mb-2" for="password">
+                  Contraseña
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  required
+                />
+              </div>
+
+              <!-- Tipo de Venta -->
+              <div>
+                <label class="block text-sm font-medium text-purple-200 mb-2" for="tipoVenta">
+                  Tipo de Venta
+                </label>
+                <select
+                  id="tipoVenta"
+                  class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  required
+                >
+                  <option value="" disabled selected class="bg-indigo-900">Seleccione un tipo</option>
+                  <option value="comida" class="bg-indigo-900">Comida</option>
+                  <option value="artesania" class="bg-indigo-900">Artesanía</option>
+                  <option value="bebidas" class="bg-indigo-900">Bebidas</option>
+                  <option value="souvenirs" class="bg-indigo-900">Souvenirs</option>
+                  <option value="otros" class="bg-indigo-900">Otros</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+              <!-- Foto del puesto -->
+              <div>
+                <label class="block text-sm font-medium text-purple-200 mb-2">
+                  Foto del puesto o productos
+                </label>
+                <div class="border-2 border-dashed border-white/20 rounded-lg p-4 text-center" id="dropZone">
+                  <div class="space-y-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="text-purple-200">Arrastra una imagen o haz clic para seleccionar</p>
+                  </div>
+                  <input type="file" id="imageUpload" accept="image/*" class="hidden" />
+                </div>
+                <div id="imagePreview" class="mt-4 hidden">
+                  <img src="" alt="Preview" class="max-h-48 mx-auto rounded-lg" />
+                </div>
+              </div>
+
+              <!-- Documentos -->
+              <div>
+                <label class="block text-sm font-medium text-purple-200 mb-2">
+                  DNI/RUC (PDF o imagen)
+                </label>
+                <div class="border-2 border-dashed border-white/20 rounded-lg p-4">
+                  <input
+                    type="file"
+                    id="documentUpload"
+                    accept=".pdf,image/*"
+                    class="w-full text-purple-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-500 file:text-white hover:file:bg-purple-600 cursor-pointer"
+                    required
+                  />
+                </div>
+              </div>
+
+              <!-- Descripción -->
+              <div>
+                <label class="block text-sm font-medium text-purple-200 mb-2" for="descripcion">
+                  Descripción de productos/servicios
+                </label>
+                <textarea
+                  id="descripcion"
+                  rows="4"
+                  class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  required
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Términos y condiciones -->
+          <div class="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="terminos"
+              class="w-4 h-4 rounded bg-white/10 border-white/20 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
+              required
+            />
+            <label class="text-purple-200" for="terminos">
+              Acepto los <a href="#" class="text-purple-400 hover:text-white">términos y condiciones</a>
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            class="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-purple-600 text-white rounded-lg font-medium hover:from-red-500 hover:to-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-purple-900 transition"
+          >
+            REGISTRARSE
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .backdrop-blur-lg {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  /* Custom focus styles */
+  input:focus, select:focus, textarea:focus {
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+  }
+
+  /* Smooth transitions */
+  .transition {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  /* Drag and drop styles */
+  #dropZone.drag-over {
+    border-color: rgb(168, 85, 247);
+    background-color: rgba(168, 85, 247, 0.1);
+  }
+</style>
+
+<script>
+  // Form handling
+  const form = document.getElementById('vendorForm');
+  const dropZone = document.getElementById('dropZone');
+  const imageUpload = document.getElementById('imageUpload');
+  const imagePreview = document.getElementById('imagePreview');
+  const previewImg = imagePreview?.querySelector('img');
+
+  // Drag and drop functionality
+  dropZone?.addEventListener('click', () => imageUpload?.click());
+
+  dropZone?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+
+  dropZone?.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+  });
+
+  dropZone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const files = e.dataTransfer?.files;
+    if (files?.[0] && imageUpload) {
+      imageUpload.files = files;
+      handleImageUpload(files[0]);
+    }
+  });
+
+  imageUpload?.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+  });
+
+  function handleImageUpload(file: File) {
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecciona una imagen válida');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (previewImg && e.target?.result) {
+        previewImg.src = e.target.result as string;
+        imagePreview?.classList.remove('hidden');
+        dropZone?.classList.add('hidden');
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Form submission
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Aquí iría la lógica de envío del formulario
+    const formData = new FormData(form);
+    console.log('Datos del formulario:', Object.fromEntries(formData));
+    
+    // Simulación de envío
+    try {
+      // Mostrar loading
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.textContent = 'Enviando...';
+        submitBtn.disabled = true;
+      }
+
+      // Simular delay de red
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Mostrar mensaje de éxito
+      alert('Registro enviado con éxito. Revisaremos tu solicitud y te contactaremos pronto.');
+      
+      // Redireccionar
+      // window.location.href = '/registro-exitoso';
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Hubo un error al enviar el formulario. Por favor, intenta nuevamente.');
+    } finally {
+      // Restaurar botón
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.textContent = 'REGISTRARSE';
+        submitBtn.disabled = false;
+      }
+    }
+  });
+</script> 

@@ -1,0 +1,254 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout>
+  <div class="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-indigo-900 via-purple-900 to-red-900 pt-20 px-4 md:px-8">
+    <!-- Header Card -->
+    <div class="max-w-7xl mx-auto">
+      <div class="bg-red-700 rounded-t-2xl shadow-lg">
+        <div class="p-4 flex justify-between items-center">
+          <div class="flex-1">
+            <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+              HOLA, FIESTA GROUP
+              <span class="text-lg font-normal">(Ventas hoy: $1,850)</span>
+            </h1>
+          </div>
+          <div class="flex items-center gap-4">
+            <button class="px-4 py-2 bg-red-800 hover:bg-red-600 text-white rounded-lg transition">
+              Escanear
+            </button>
+            <button class="px-4 py-2 bg-red-800 hover:bg-red-600 text-white rounded-lg transition">
+              Soporte
+            </button>
+            <div class="relative">
+              <img src="/images/Ejemplo.jpeg" alt="Perfil" class="w-12 h-12 rounded-full border-2 border-white cursor-pointer"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 backdrop-blur-lg bg-white/10 rounded-b-2xl border border-white/20">
+        <!-- Ventas Chart -->
+        <div class="bg-blue-900/40 p-4 rounded-xl">
+          <h3 class="text-white font-semibold mb-2">VENTAS</h3>
+          <div class="h-32 flex items-end gap-2">
+            <div class="w-1/6 bg-blue-500/50 hover:bg-blue-500/70 transition rounded-t h-[20%]"></div>
+            <div class="w-1/6 bg-blue-500/50 hover:bg-blue-500/70 transition rounded-t h-[40%]"></div>
+            <div class="w-1/6 bg-blue-500/50 hover:bg-blue-500/70 transition rounded-t h-[60%]"></div>
+            <div class="w-1/6 bg-blue-500/50 hover:bg-blue-500/70 transition rounded-t h-[80%]"></div>
+            <div class="w-1/6 bg-blue-500/50 hover:bg-blue-500/70 transition rounded-t h-[90%]"></div>
+            <div class="w-1/6 bg-blue-500/50 hover:bg-blue-500/70 transition rounded-t h-full"></div>
+          </div>
+        </div>
+
+        <!-- Ocupación Stats -->
+        <div class="bg-blue-900/40 p-4 rounded-xl">
+          <div class="space-y-4">
+            <div class="flex items-center gap-2 text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span>94% ocupación (VIP)</span>
+            </div>
+            <div class="flex items-center gap-2 text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <span>3 reservas activas</span>
+            </div>
+            <div class="flex items-center gap-2 text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span>2 mensajes sin leer</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-blue-900/40 p-4 rounded-xl">
+          <h3 class="text-white font-semibold mb-4">Acciones Rápidas</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button class="p-2 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded-lg transition text-sm">
+              Generar QR
+            </button>
+            <button class="p-2 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded-lg transition text-sm">
+              Ver Reportes
+            </button>
+            <button class="p-2 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded-lg transition text-sm">
+              Configuración
+            </button>
+            <button class="p-2 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded-lg transition text-sm">
+              Notificaciones
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ventas Table Section -->
+      <div class="mt-8">
+        <div class="bg-blue-900/80 rounded-t-xl p-4">
+          <h2 class="text-xl font-bold text-white">ASIENTOS MÁS VENDIDOS (HOY)</h2>
+        </div>
+        
+        <div class="backdrop-blur-lg bg-white/10 rounded-b-xl border border-white/20 overflow-hidden">
+          <!-- Table Actions -->
+          <div class="p-4 flex gap-4">
+            <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Añadir asientos
+            </button>
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Exportar reporte
+            </button>
+          </div>
+
+          <!-- Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-blue-900/40">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-purple-200 uppercase tracking-wider">Cuenta</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-purple-200 uppercase tracking-wider">Asiento</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-purple-200 uppercase tracking-wider">Tipo</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-purple-200 uppercase tracking-wider">Ventas</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-purple-200 uppercase tracking-wider">Costo Total</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-purple-200 uppercase tracking-wider">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-blue-900/30">
+                {[1, 2, 3, 4].map(() => (
+                  <tr class="hover:bg-blue-900/20 transition">
+                    <td class="px-6 py-4 text-sm text-purple-200">usuario@gmail.com</td>
+                    <td class="px-6 py-4 text-sm text-purple-200">B12</td>
+                    <td class="px-6 py-4 text-sm text-purple-200">
+                      <span class="px-2 py-1 bg-purple-600/50 rounded-full text-xs">VIP</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-purple-200">8 ventas</td>
+                    <td class="px-6 py-4 text-sm text-purple-200">$1200</td>
+                    <td class="px-6 py-4 text-sm text-purple-200">
+                      <div class="flex gap-2">
+                        <button class="p-1 hover:bg-purple-600/50 rounded transition">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        <button class="p-1 hover:bg-purple-600/50 rounded transition">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="p-4 flex justify-between items-center">
+            <div class="text-sm text-purple-200">
+              Mostrando 1-4 de 4 resultados
+            </div>
+            <div class="flex gap-2">
+              <button class="px-3 py-1 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded transition disabled:opacity-50" disabled>
+                Anterior
+              </button>
+              <button class="px-3 py-1 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded transition disabled:opacity-50" disabled>
+                Siguiente
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .backdrop-blur-lg {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  /* Custom focus styles */
+  button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+  }
+
+  /* Table styles */
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  /* Smooth transitions */
+  .transition {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+</style>
+
+<script>
+  // Chart animation on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate-height');
+      }
+    });
+  });
+
+  document.querySelectorAll('.h-32 > div').forEach((el) => {
+    observer.observe(el);
+  });
+
+  // Notifications handling
+  // This would be replaced with an actual API call in production
+  async function getNotificationCount() {
+    // Simulating an API call
+    return new Promise(resolve => {
+      // For now, returning 0 to hide the badge
+      // In production, this would be an actual API call
+      resolve(0);
+    });
+  }
+
+  // Update notification badge
+  getNotificationCount().then(count => {
+    if (count > 0) {
+      const badge = document.createElement('div');
+      badge.className = 'absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center text-white';
+      badge.textContent = count.toString();
+      document.querySelector('.relative')?.appendChild(badge);
+    }
+  });
+
+  // Export functionality
+  document.querySelector('button:contains("Exportar reporte")')?.addEventListener('click', () => {
+    // Aquí iría la lógica de exportación
+    console.log('Exportando reporte...');
+  });
+
+  // Add seats functionality
+  document.querySelector('button:contains("Añadir asientos")')?.addEventListener('click', () => {
+    // Aquí iría la lógica para añadir asientos
+    console.log('Abriendo modal de añadir asientos...');
+  });
+</script> 
