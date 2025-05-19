@@ -1,12 +1,99 @@
 ---
 import "../styles/global.css";
 ---
-<header class="bg-primary text-black p-4 flex justify-between items-center">
-  <div class="text-2xl font-bold">Carnaval Oruro 2025</div>
-  <nav class="space-x-4">
-    <a href="/" class="hover:underline">Inicio</a>
-    <a href="/boletos" class="hover:underline">Mis Boletos</a>
-    <a href="/soporte" class="hover:underline">Soporte</a>
-    <a href="/login" class="hover:underline">Iniciar Sesión</a>
-  </nav>
+<header class="fixed w-full z-50">
+  <!-- Barra de navegación superior -->
+  <div class="bg-black/30 backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex items-center justify-between h-20">
+        <!-- Logo -->
+        <div class="flex-shrink-0">
+          <a href="/" class="text-white text-2xl font-bold">
+            <img src="/images/logo-carnaval.png" alt="Carnaval Oruro" class="h-12" />
+          </a>
+        </div>
+
+        <!-- Navegación Principal -->
+        <nav class="hidden md:flex space-x-8">
+          <div class="group relative">
+            <button class="text-white hover:text-yellow-400 px-3 py-2 text-sm font-medium uppercase tracking-wider">
+              Eventos
+              <span class="ml-1">▼</span>
+            </button>
+            <div class="absolute hidden group-hover:block w-48 bg-black/90 backdrop-blur-sm">
+              <a href="/entrada" class="block px-4 py-2 text-sm text-white hover:bg-white/10">Entrada del Carnaval</a>
+              <a href="/corso" class="block px-4 py-2 text-sm text-white hover:bg-white/10">Corso del Carnaval</a>
+              <a href="/velada" class="block px-4 py-2 text-sm text-white hover:bg-white/10">Velada</a>
+            </div>
+          </div>
+
+          <div class="group relative">
+            <button class="text-white hover:text-yellow-400 px-3 py-2 text-sm font-medium uppercase tracking-wider">
+              Experiencias
+              <span class="ml-1">▼</span>
+            </button>
+            <div class="absolute hidden group-hover:block w-48 bg-black/90 backdrop-blur-sm">
+              <a href="/danzas" class="block px-4 py-2 text-sm text-white hover:bg-white/10">Danzas</a>
+              <a href="/musica" class="block px-4 py-2 text-sm text-white hover:bg-white/10">Bandas</a>
+              <a href="/cultura" class="block px-4 py-2 text-sm text-white hover:bg-white/10">Cultura</a>
+            </div>
+          </div>
+
+          <a href="/tienda" class="text-white hover:text-yellow-400 px-3 py-2 text-sm font-medium uppercase tracking-wider">
+            Tienda
+          </a>
+
+          <a href="/galeria" class="text-white hover:text-yellow-400 px-3 py-2 text-sm font-medium uppercase tracking-wider">
+            Galería
+          </a>
+        </nav>
+
+        <!-- Botón de cuenta -->
+        <div class="flex items-center">
+          <button 
+            onclick="openLoginModal()" 
+            class="text-white hover:text-yellow-400 px-3 py-2 text-sm font-medium uppercase tracking-wider cursor-pointer"
+          >
+            Mi Cuenta
+          </button>
+        </div>
+
+        <!-- Menú móvil -->
+        <div class="md:hidden">
+          <button type="button" id="mobile-menu-button" class="text-white hover:text-yellow-400">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menú móvil expandible -->
+  <div class="hidden md:hidden" id="mobile-menu">
+    <div class="bg-black/90 backdrop-blur-sm px-2 pt-2 pb-3 space-y-1">
+      <a href="/eventos" class="block px-3 py-2 text-white hover:bg-white/10 text-sm uppercase tracking-wider">
+        Eventos
+      </a>
+      <a href="/experiencias" class="block px-3 py-2 text-white hover:bg-white/10 text-sm uppercase tracking-wider">
+        Experiencias
+      </a>
+      <a href="/tienda" class="block px-3 py-2 text-white hover:bg-white/10 text-sm uppercase tracking-wider">
+        Tienda
+      </a>
+      <a href="/galeria" class="block px-3 py-2 text-white hover:bg-white/10 text-sm uppercase tracking-wider">
+        Galería
+      </a>
+    </div>
+  </div>
 </header>
+
+<script>
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  mobileMenuButton?.addEventListener('click', () => {
+    mobileMenu?.classList.toggle('hidden');
+  });
+</script>
