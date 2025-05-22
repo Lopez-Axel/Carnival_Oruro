@@ -1,22 +1,116 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+---
+// src/layouts/Layout.astro
+export interface Props {
+  title: string;
+  description?: string;
+}
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+const { title, description = "Venta de tickets para el Carnaval de Oruro 2025 - Patrimonio Cultural de la Humanidad" } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    
+    <!-- Meta tags adicionales -->
+    <meta name="keywords" content="carnaval, oruro, bolivia, tickets, entradas, folclore, unesco" />
+    <meta name="author" content="Carnaval de Oruro" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_BO" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS Global con Tailwind v4 -->
+    <style>
+      @import "/src/styles/global.css";
+    </style>
+    
+    <title>{title}</title>
+  </head>
+  <body class="font-sans antialiased">
+    <slot />
+    
+    <!-- Toast Container para notificaciones -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <!-- Scripts globales -->
+    <script>
+      // Función global para mostrar notificaciones toast
+      window.showToast = function(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        
+        const bgColor = {
+          'success': 'bg-green-500',
+          'error': 'bg-red-500',
+          'warning': 'bg-yellow-500',
+          'info': 'bg-blue-500'
+        }[type] || 'bg-blue-500';
+        
+        toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0`;
+        toast.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+              ✕
+            </button>
+          </div>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Animar entrada
+        setTimeout(() => {
+          toast.classList.remove('translate-x-full', 'opacity-0');
+        }, 100);
+        
+        // Auto remover después de 5 segundos
+        setTimeout(() => {
+          toast.classList.add('translate-x-full', 'opacity-0');
+          setTimeout(() => toast.remove(), 300);
+        }, 5000);
+      };
+      
+      // Verificar mensajes en URL al cargar la página
+      document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        const message = urlParams.get('message');
+        const success = urlParams.get('success');
+        
+        if (error) {
+          window.showToast(error, 'error');
+        }
+        
+        if (message) {
+          window.showToast(message, 'info');
+        }
+        
+        if (success) {
+          window.showToast(success, 'success');
+        }
+        
+        // Limpiar URL después de mostrar notificaciones
+        if (error || message || success) {
+          setTimeout(() => {
+            const url = new URL(window.location);
+            url.searchParams.delete('error');
+            url.searchParams.delete('message');
+            url.searchParams.delete('success');
+            window.history.replaceState({}, document.title, url.toString());
+          }, 1000);
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,417 @@
+---
+// src/pages/signup.astro
+import Layout from '../layouts/Layout.astro';
+import { getCurrentUser } from '../lib/supabase';
+
+// Verificar si el usuario ya está autenticado
+const currentUser = await getCurrentUser();
+
+// Si ya está autenticado, redirigir al dashboard
+if (currentUser) {
+  return Astro.redirect('/dashboard');
+}
+
+// Obtener mensajes de la URL
+const error = Astro.url.searchParams.get('error');
+const message = Astro.url.searchParams.get('message');
+---
+
+<Layout title="Crear Cuenta - Carnaval de Oruro">
+  <main class="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 flex items-center justify-center px-6 py-12">
+    <div class="max-w-md w-full">
+      <!-- Logo/Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-white mb-2">🎭</h1>
+        <h2 class="text-2xl font-bold text-white mb-2">Carnaval de Oruro</h2>
+        <p class="text-blue-100">Crea tu cuenta para comprar tickets</p>
+      </div>
+
+      <!-- Mensajes de error o éxito -->
+      {error && (
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <p class="text-sm">{error}</p>
+        </div>
+      )}
+
+      {message && (
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+          <p class="text-sm">{message}</p>
+        </div>
+      )}
+
+      <!-- Card de Registro -->
+      <div class="bg-white rounded-lg shadow-xl p-8">
+        <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Crear Cuenta</h3>
+        
+        <!-- Formulario de Registro -->
+        <form action="/api/auth/signup" method="POST" class="space-y-4" id="signupForm">
+          <div>
+            <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
+              Nombre completo *
+            </label>
+            <input 
+              type="text" 
+              id="fullName"
+              name="fullName" 
+              placeholder="Juan Pérez" 
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+            />
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+              Correo electrónico *
+            </label>
+            <input 
+              type="email" 
+              id="email"
+              name="email" 
+              placeholder="tu@email.com" 
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+            />
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+              Contraseña *
+            </label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="password"
+                name="password" 
+                placeholder="Mínimo 6 caracteres" 
+                required
+                minlength="6"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors pr-12"
+              />
+              <button 
+                type="button" 
+                class="absolute inset-y-0 right-0 px-3 flex items-center"
+                onclick="togglePassword()"
+                id="toggleBtn">
+                <svg class="w-5 h-5 text-gray-400" id="eyeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="mt-1">
+              <div class="text-xs text-gray-500">
+                <div id="passwordStrength" class="hidden">
+                  <div class="flex space-x-1 mt-2">
+                    <div class="h-1 w-1/4 rounded" id="strength1"></div>
+                    <div class="h-1 w-1/4 rounded" id="strength2"></div>
+                    <div class="h-1 w-1/4 rounded" id="strength3"></div>
+                    <div class="h-1 w-1/4 rounded" id="strength4"></div>
+                  </div>
+                  <span id="strengthText" class="text-xs"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">
+              Confirmar contraseña *
+            </label>
+            <input 
+              type="password" 
+              id="confirmPassword"
+              name="confirmPassword" 
+              placeholder="Repite tu contraseña" 
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+            />
+            <div id="passwordMatch" class="text-xs mt-1 hidden"></div>
+          </div>
+
+          <div>
+            <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
+              Tipo de cuenta *
+            </label>
+            <select 
+              id="role"
+              name="role" 
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors">
+              <option value="">Selecciona tu tipo de cuenta</option>
+              <option value="cliente">👤 Cliente - Comprar tickets</option>
+              <option value="vendedor">🏪 Vendedor - Vender tickets</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              Los vendedores requieren aprobación del administrador
+            </p>
+          </div>
+
+          <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
+              Teléfono (opcional)
+            </label>
+            <input 
+              type="tel" 
+              id="phone"
+              name="phone" 
+              placeholder="+591 70123456" 
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+            />
+          </div>
+
+          <div class="flex items-start">
+            <div class="flex items-center h-5">
+              <input 
+                id="terms" 
+                name="terms" 
+                type="checkbox" 
+                required
+                class="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50">
+            </div>
+            <div class="ml-3 text-sm">
+              <label for="terms" class="text-gray-700">
+                Acepto los 
+                <a href="/terms" class="text-green-600 hover:text-green-800 underline" target="_blank">
+                  términos y condiciones
+                </a> 
+                y la 
+                <a href="/privacy" class="text-green-600 hover:text-green-800 underline" target="_blank">
+                  política de privacidad
+                </a>
+              </label>
+            </div>
+          </div>
+
+          <div class="flex items-start">
+            <div class="flex items-center h-5">
+              <input 
+                id="newsletter" 
+                name="newsletter" 
+                type="checkbox" 
+                class="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50">
+            </div>
+            <div class="ml-3 text-sm">
+              <label for="newsletter" class="text-gray-700">
+                Quiero recibir noticias y ofertas especiales del Carnaval de Oruro
+              </label>
+            </div>
+          </div>
+
+          <button 
+            type="submit"
+            class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            id="submitBtn"
+            disabled>
+            <span id="submitText">Crear Cuenta</span>
+            <span id="loadingSpinner" class="hidden">
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Creando cuenta...
+            </span>
+          </button>
+        </form>
+
+        <!-- Separador -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-300"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-white text-gray-500">o regístrate con</span>
+          </div>
+        </div>
+
+        <!-- Botón de Google -->
+        <a href="/api/auth/login" 
+           class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2 group">
+          <svg class="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continuar con Google
+        </a>
+
+        <div class="mt-6 text-center">
+          <p class="text-gray-600">
+            ¿Ya tienes cuenta? 
+            <a href="/signin" class="text-green-600 hover:text-green-700 font-semibold">
+              Inicia sesión aquí
+            </a>
+          </p>
+        </div>
+
+        <div class="mt-4 text-center">
+          <a href="/" class="text-gray-500 hover:text-gray-700 text-sm">
+            ← Volver al inicio
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  let passwordInput: HTMLInputElement;
+  let confirmPasswordInput: HTMLInputElement;
+  let submitBtn: HTMLButtonElement;
+  let termsCheckbox: HTMLInputElement;
+
+  document.addEventListener('DOMContentLoaded', function() {
+    passwordInput = document.getElementById('password') as HTMLInputElement;
+    confirmPasswordInput = document.getElementById('confirmPassword') as HTMLInputElement;
+    submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    termsCheckbox = document.getElementById('terms') as HTMLInputElement;
+
+    // Validar en tiempo real
+    passwordInput.addEventListener('input', validatePassword);
+    confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+    termsCheckbox.addEventListener('change', validateForm);
+    
+    // Validar formulario completo al cambiar cualquier campo
+    const formInputs = document.querySelectorAll('#signupForm input, #signupForm select');
+    formInputs.forEach(input => {
+      input.addEventListener('input', validateForm);
+      input.addEventListener('change', validateForm);
+    });
+  });
+
+  function togglePassword() {
+    const eyeIcon = document.getElementById('eyeIcon');
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      eyeIcon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+      `;
+    } else {
+      passwordInput.type = 'password';
+      eyeIcon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+      `;
+    }
+  }
+
+  function validatePassword() {
+    const password = passwordInput.value;
+    const strengthDiv = document.getElementById('passwordStrength');
+    const strengthText = document.getElementById('strengthText');
+    
+    if (password.length > 0) {
+      strengthDiv.classList.remove('hidden');
+      
+      let strength = 0;
+      const checks = [
+        password.length >= 8,
+        /[a-z]/.test(password),
+        /[A-Z]/.test(password),
+        /[0-9]/.test(password),
+        /[^A-Za-z0-9]/.test(password)
+      ];
+      
+      strength = checks.filter(Boolean).length;
+      
+      const strengthBars = ['strength1', 'strength2', 'strength3', 'strength4'];
+      const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
+      const texts = ['Muy débil', 'Débil', 'Regular', 'Fuerte', 'Muy fuerte'];
+      
+      // Limpiar barras
+      strengthBars.forEach(bar => {
+        const element = document.getElementById(bar);
+        element.className = 'h-1 w-1/4 rounded bg-gray-200';
+      });
+      
+      // Colorear barras según fortaleza
+      for (let i = 0; i < Math.min(strength, 4); i++) {
+        const element = document.getElementById(strengthBars[i]);
+        element.className = `h-1 w-1/4 rounded ${colors[Math.min(strength - 1, 3)]}`;
+      }
+      
+      strengthText.textContent = texts[Math.min(strength, 4)];
+      strengthText.className = `text-xs ${strength < 3 ? 'text-red-600' : 'text-green-600'}`;
+    } else {
+      strengthDiv.classList.add('hidden');
+    }
+    
+    validatePasswordMatch();
+    validateForm();
+  }
+
+  function validatePasswordMatch() {
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    const matchDiv = document.getElementById('passwordMatch');
+    
+    if (confirmPassword.length > 0) {
+      matchDiv.classList.remove('hidden');
+      
+      if (password === confirmPassword) {
+        matchDiv.textContent = '✓ Las contraseñas coinciden';
+        matchDiv.className = 'text-xs mt-1 text-green-600';
+      } else {
+        matchDiv.textContent = '✗ Las contraseñas no coinciden';
+        matchDiv.className = 'text-xs mt-1 text-red-600';
+      }
+    } else {
+      matchDiv.classList.add('hidden');
+    }
+    
+    validateForm();
+  }
+
+  function validateForm() {
+    const fullName = (document.getElementById('fullName') as HTMLInputElement).value;
+    const email = (document.getElementById('email') as HTMLInputElement).value;
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    const role = (document.getElementById('role') as HTMLSelectElement).value;
+    const terms = termsCheckbox.checked;
+    
+    const isValid = fullName.length > 0 &&
+                   email.length > 0 &&
+                   password.length >= 6 &&
+                   password === confirmPassword &&
+                   role.length > 0 &&
+                   terms;
+    
+    submitBtn.disabled = !isValid;
+  }
+
+  // Manejo del formulario de registro
+  document.getElementById('signupForm')?.addEventListener('submit', function() {
+    const submitText = document.getElementById('submitText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    
+    if (submitBtn && submitText && loadingSpinner) {
+      submitBtn.disabled = true;
+      submitText.classList.add('hidden');
+      loadingSpinner.classList.remove('hidden');
+    }
+  });
+
+  // Limpiar URL después de mostrar mensajes
+  if (window.location.search) {
+    setTimeout(() => {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }, 5000);
+  }
+</script>
+
+<style>
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

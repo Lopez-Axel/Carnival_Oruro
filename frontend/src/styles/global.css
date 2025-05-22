@@ -1,1 +1,166 @@
+/* src/styles/global.css - Para Tailwind v4 */
 @import "tailwindcss";
+
+/* Configuración de tema personalizada para v4 */
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  
+  /* Colores personalizados del carnaval */
+  --color-carnaval-orange: #ff6b35;
+  --color-carnaval-red: #e63946;
+  --color-carnaval-pink: #f72585;
+  --color-carnaval-purple: #7209b7;
+  --color-carnaval-blue: #4361ee;
+  --color-carnaval-green: #43aa8b;
+  
+  /* Animaciones personalizadas */
+  --animate-fade-in: fade-in 0.5s ease-in-out;
+  --animate-slide-in: slide-in 0.3s ease-out;
+  --animate-pulse-custom: pulse-custom 2s infinite;
+}
+
+/* Keyframes para animaciones */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-custom {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Estilos base personalizados */
+html {
+  font-family: var(--font-sans);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Componentes personalizados usando utilidades de Tailwind */
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  transform: scale(1);
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+  transform: scale(1.05);
+}
+
+.btn-primary:active {
+  transform: scale(0.95);
+}
+
+.btn-secondary {
+  background-color: #4b5563;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #374151;
+}
+
+.btn-success {
+  background-color: #059669;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-success:hover {
+  background-color: #047857;
+}
+
+.btn-danger {
+  background-color: #dc2626;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
+}
+
+/* Utilidades de animación */
+.fade-in {
+  animation: var(--animate-fade-in);
+}
+
+.slide-in {
+  animation: var(--animate-slide-in);
+}
+
+.animate-pulse-custom {
+  animation: var(--animate-pulse-custom);
+}
+
+/* Scrollbar personalizada */
+.scrollbar-custom::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

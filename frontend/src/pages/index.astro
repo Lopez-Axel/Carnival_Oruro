@@ -1,182 +1,247 @@
 ---
-import MainLayout from '../layouts/MainLayout.astro';
-import LoginModal from '../components/LoginModal.astro';
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+import { getCurrentUser } from '../lib/supabase';
+
+// Verificar si el usuario ya está autenticado
+const currentUser = await getCurrentUser();
+
+// Si ya está autenticado, redirigir al dashboard
+if (currentUser) {
+  return Astro.redirect('/dashboard');
+}
 ---
-<MainLayout>
-  <!-- Hero Section -->
-  <section class="main-container">
-    <img 
-      src="/images/Portada.jpg" 
-      alt="Diablada - Carnaval de Oruro" 
-      class="full-bleed-image"
-    />
-    <div class="overlay-gradient"></div>
 
-    <div class="relative min-h-screen flex flex-col items-center justify-center px-4 text-center">
-      <h1 class="hero-title fade-in">
-       
-        <span class="block mt-4">Carnaval de Oruro</span>
-      </h1>
-      
-      <p class="hero-subtitle fade-in">
-        Este año el diseño de los trajes y las coreografías superarán todas las expectativas.
-      </p>
-
-      <div class="flex gap-4 mt-8">
-        <a href="/eventos" class="hero-button fade-in">
-          Revive
-        </a>
+<Layout title="Carnaval de Oruro - Venta de Tickets">
+  <main class="min-h-screen bg-gradient-to-br from-orange-400 via-red-500 to-pink-500">
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden">
+      <div class="absolute inset-0 bg-black opacity-40"></div>
+      <div class="relative container mx-auto px-6 py-24 text-center text-white">
+        <h1 class="text-5xl md:text-7xl font-bold mb-6 animate-pulse">
+          🎭 Carnaval de Oruro 2025
+        </h1>
+        <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
+          Vive la experiencia más espectacular del folclore boliviano. 
+          Compra tus tickets para el evento cultural más importante de Bolivia.
+        </p>
+        
+        <!-- Botones de Acción -->
+        <div class="flex flex-col md:flex-row gap-4 justify-center items-center mb-12">
+          <a href="/signup" 
+             class="bg-white text-red-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-lg">
+            🎫 Comprar Tickets
+          </a>
+          <a href="/signin" 
+             class="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-red-600 transform hover:scale-105 transition-all duration-300">
+            Iniciar Sesión
+          </a>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Sección de Eventos -->
-  <section class="py-20">
-    <div class="max-w-7xl mx-auto px-4">
-      <h2 class="section-title">
-        Próximos Festivales & Eventos
-      </h2>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Evento 1 -->
-        <div class="event-card fade-in">
-          <img 
-            src="/images/Ejemplo.jpeg" 
-            alt="Velada del Carnaval"
-          />
-          <div class="event-card-overlay"></div>
-          <div class="event-card-content">
-            <h3 class="event-title">Velada del Carnaval</h3>
-            <div class="event-info">
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.75 2.5A.75.75 0 017.5 1.75h9a.75.75 0 010 1.5h-9A.75.75 0 016.75 2.5zM4 5.75A.75.75 0 014.75 5h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 5.75zM4 9.75A.75.75 0 014.75 9h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 9.75zM4 13.75A.75.75 0 014.75 13h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 13.75zM4 17.75A.75.75 0 014.75 17h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 17.75zM4 21.75A.75.75 0 014.75 21h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 21.75z"/>
-                </svg>
-                <span>10 de Febrero, 2025</span>
-              </div>
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-                </svg>
-                <span>Plaza 10 de Febrero - Oruro</span>
-              </div>
-            </div>
-            <div class="event-buttons">
-              <a href="/eventos/velada" class="event-button">Info</a>
-              <a href="/boletos/velada" class="event-button">Tickets</a>
-            </div>
-          </div>
+    <!-- Información del Carnaval -->
+    <section class="bg-white py-16">
+      <div class="container mx-auto px-6">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold text-gray-800 mb-4">¿Por qué elegir nuestros tickets?</h2>
+          <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+            Somos la plataforma oficial para la venta de entradas del Carnaval de Oruro
+          </p>
         </div>
 
-        <!-- Evento 2 -->
-        <div class="event-card fade-in">
-          <img 
-            src="/images/Ejemplo.jpeg" 
-            alt="Entrada del Carnaval"
-          />
-          <div class="event-card-overlay"></div>
-          <div class="event-card-content">
-            <h3 class="event-title">Entrada del Carnaval</h3>
-            <div class="event-info">
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.75 2.5A.75.75 0 017.5 1.75h9a.75.75 0 010 1.5h-9A.75.75 0 016.75 2.5zM4 5.75A.75.75 0 014.75 5h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 5.75zM4 9.75A.75.75 0 014.75 9h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 9.75zM4 13.75A.75.75 0 014.75 13h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 13.75zM4 17.75A.75.75 0 014.75 17h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 17.75zM4 21.75A.75.75 0 014.75 21h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 21.75z"/>
-                </svg>
-                <span>11 de Febrero, 2025</span>
-              </div>
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-                </svg>
-                <span>Avenida 6 de Agosto - Oruro</span>
-              </div>
-            </div>
-            <div class="event-buttons">
-              <a href="/eventos/entrada" class="event-button">Info</a>
-              <a href="/boletos/entrada" class="event-button">Tickets</a>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Característica 1 -->
+          <div class="text-center p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow">
+            <div class="text-4xl mb-4">🔒</div>
+            <h3 class="text-xl font-bold mb-2 text-gray-800">Compra Segura</h3>
+            <p class="text-gray-600">
+              Transacciones seguras con los mejores estándares de seguridad
+            </p>
           </div>
-        </div>
 
-        <!-- Evento 3 -->
-        <div class="event-card fade-in">
-          <img 
-            src="/images/Ejemplo.jpeg" 
-            alt="Corso del Carnaval"
-          />
-          <div class="event-card-overlay"></div>
-          <div class="event-card-content">
-            <h3 class="event-title">Corso del Carnaval</h3>
-            <div class="event-info">
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.75 2.5A.75.75 0 017.5 1.75h9a.75.75 0 010 1.5h-9A.75.75 0 016.75 2.5zM4 5.75A.75.75 0 014.75 5h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 5.75zM4 9.75A.75.75 0 014.75 9h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 9.75zM4 13.75A.75.75 0 014.75 13h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 13.75zM4 17.75A.75.75 0 014.75 17h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 17.75zM4 21.75A.75.75 0 014.75 21h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 21.75z"/>
-                </svg>
-                <span>12 de Febrero, 2025</span>
-              </div>
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-                </svg>
-                <span>Avenida Cívica - Oruro</span>
-              </div>
-            </div>
-            <div class="event-buttons">
-              <a href="/eventos/corso" class="event-button">Info</a>
-              <a href="/boletos/corso" class="event-button">Tickets</a>
-            </div>
+          <!-- Característica 2 -->
+          <div class="text-center p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow">
+            <div class="text-4xl mb-4">📱</div>
+            <h3 class="text-xl font-bold mb-2 text-gray-800">Tickets Digitales</h3>
+            <p class="text-gray-600">
+              Acceso inmediato a tus tickets digitales, sin filas ni esperas
+            </p>
+          </div>
+
+          <!-- Característica 3 -->
+          <div class="text-center p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow">
+            <div class="text-4xl mb-4">🎭</div>
+            <h3 class="text-xl font-bold mb-2 text-gray-800">Mejor Ubicación</h3>
+            <p class="text-gray-600">
+              Elige tu ubicación ideal con nuestro mapa interactivo
+            </p>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Login Modal -->
-  <LoginModal />
-</MainLayout>
+    <!-- Sección de Autenticación Rápida -->
+    <section class="bg-gray-100 py-16">
+      <div class="container mx-auto px-6">
+        <div class="max-w-4xl mx-auto">
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">Acceso Rápido</h2>
+            <p class="text-gray-600 text-lg">
+              Inicia sesión o regístrate para comenzar a comprar tus tickets
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Card de Login -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+              <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Iniciar Sesión</h3>
+              
+              <!-- Botón de Google -->
+              <a href="/api/auth/login" 
+                 class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold mb-4 hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continuar con Google
+              </a>
+
+              <div class="relative mb-4">
+                <div class="absolute inset-0 flex items-center">
+                  <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                  <span class="px-2 bg-white text-gray-500">o</span>
+                </div>
+              </div>
+
+              <!-- Formulario de Login -->
+              <form action="/api/auth/signin" method="POST" class="space-y-4">
+                <input 
+                  type="email" 
+                  name="email" 
+                  placeholder="Correo electrónico" 
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+                <input 
+                  type="password" 
+                  name="password" 
+                  placeholder="Contraseña" 
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+                <button 
+                  type="submit"
+                  class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                  Iniciar Sesión
+                </button>
+              </form>
+
+              <p class="text-center text-gray-600 mt-4">
+                ¿No tienes cuenta? 
+                <a href="/signup" class="text-red-600 hover:text-red-700 font-semibold">Regístrate aquí</a>
+              </p>
+            </div>
+
+            <!-- Card de Registro -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+              <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Crear Cuenta</h3>
+              
+              <form action="/api/auth/signup" method="POST" class="space-y-4">
+                <input 
+                  type="text" 
+                  name="fullName" 
+                  placeholder="Nombre completo" 
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+                <input 
+                  type="email" 
+                  name="email" 
+                  placeholder="Correo electrónico" 
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+                <input 
+                  type="password" 
+                  name="password" 
+                  placeholder="Contraseña" 
+                  required
+                  minlength="6"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+                
+                <select 
+                  name="role" 
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                  <option value="">Selecciona tu rol</option>
+                  <option value="cliente">Cliente (Comprar tickets)</option>
+                  <option value="vendedor">Vendedor (Vender tickets)</option>
+                </select>
+
+                <button 
+                  type="submit"
+                  class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                  Crear Cuenta
+                </button>
+              </form>
+
+              <p class="text-center text-gray-600 mt-4">
+                ¿Ya tienes cuenta? 
+                <a href="/signin" class="text-red-600 hover:text-red-700 font-semibold">Inicia sesión</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+      <div class="container mx-auto px-6 text-center">
+        <p class="text-lg mb-2">🎭 Carnaval de Oruro 2025</p>
+        <p class="text-gray-400">Patrimonio Cultural e Inmaterial de la Humanidad - UNESCO</p>
+        <p class="text-gray-400 mt-2">© 2025 - Todos los derechos reservados</p>
+      </div>
+    </footer>
+  </main>
+</Layout>
+
+<script>
+  // Mostrar mensajes de error o éxito si existen en la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+  const message = urlParams.get('message');
+
+  if (error) {
+    alert('Error: ' + error);
+  }
+
+  if (message) {
+    alert('Mensaje: ' + message);
+  }
+</script>
 
 <style>
-  @keyframes fade-in {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+  .container {
+    max-width: 1200px;
   }
-
-  @keyframes fade-in-up {
-    from { opacity: 0; transform: translateY(40px); }
-    to { opacity: 1; transform: translateY(0); }
+  
+  .animate-pulse {
+    animation: pulse 2s infinite;
   }
-
-  @keyframes gradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  .animate-fade-in {
-    animation: fade-in 1s ease-out forwards;
-  }
-
-  .animate-fade-in-up {
-    animation: fade-in-up 1s ease-out forwards;
-  }
-
-  .animate-gradient {
-    animation: gradient 8s ease infinite;
-    background-size: 200% auto;
-  }
-
-  .delay-200 {
-    animation-delay: 200ms;
-  }
-
-  .delay-300 {
-    animation-delay: 300ms;
-  }
-
-  .from-navy-600 {
-    --tw-gradient-from: #1a237e;
-  }
-  .to-red-600 {
-    --tw-gradient-to: #b71c1c;
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
   }
 </style>
