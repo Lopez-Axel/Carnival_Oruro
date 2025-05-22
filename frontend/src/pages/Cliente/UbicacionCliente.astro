@@ -23,47 +23,12 @@ import MainLayout from '../../layouts/MainLayout.astro';
 
     <!-- Contenedor del mapa -->
     <div class="relative h-[calc(100vh-180px)]">
-      <!-- Controles de zoom -->
-      <div class="absolute left-4 top-4 bg-white rounded-lg shadow-lg">
-        <button class="block p-2 hover:bg-gray-100 border-b border-gray-200">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-        </button>
-        <button class="block p-2 hover:bg-gray-100">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-          </svg>
-        </button>
-      </div>
+      <!-- Mapa de OpenStreetMap -->
+      <div id="map" class="h-full mx-4 rounded-lg shadow-lg"></div>
 
-      <!-- Mapa -->
-      <div class="h-full bg-gray-200/80 rounded-lg mx-4">
-        <!-- Imagen del mapa con calles -->
-        <div class="h-full relative">
-          <!-- Calles del mapa -->
-          <div class="absolute inset-0 grid grid-cols-4 gap-4 p-8">
-            <div class="border-t-2 border-white"></div>
-            <div class="border-t-2 border-white"></div>
-            <div class="border-t-2 border-white"></div>
-            <div class="border-t-2 border-white"></div>
-          </div>
-
-          <!-- Zona resaltada -->
-          <div class="absolute left-1/4 top-1/3 w-1/2 h-24 bg-green-200/50 border-2 border-yellow-400"></div>
-
-          <!-- Iconos de ubicación -->
-          <div class="absolute left-1/4 top-1/3">
-            <svg class="h-8 w-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-            </svg>
-          </div>
-
-          <!-- Imagen de referencia -->
-          <div class="absolute right-4 top-4 w-32 h-24 bg-white rounded-lg shadow-lg overflow-hidden">
-            <img src="/images/Ejemplo.jpeg" alt="Vista Tribuna Norte" class="w-full h-full object-cover">
-          </div>
-        </div>
+      <!-- Imagen de referencia -->
+      <div class="absolute right-8 top-4 w-32 h-24 bg-white rounded-lg shadow-lg overflow-hidden z-[1000]">
+        <img src="/images/Ejemplo.jpeg" alt="Vista Tribuna Norte" class="w-full h-full object-cover">
       </div>
     </div>
 
@@ -105,49 +70,180 @@ import MainLayout from '../../layouts/MainLayout.astro';
   </div>
 </MainLayout>
 
+<!-- Incluir CSS de Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+
+<!-- Incluir JavaScript de Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
 <script>
-  // Agregar interactividad al mapa
   document.addEventListener('DOMContentLoaded', () => {
-    // Implementar zoom y pan del mapa
-    const map = document.querySelector('.h-full.bg-gray-200');
-    let isDragging = false;
-    let startX, startY, scrollLeft, scrollTop;
+    // Coordenadas específicas de Oruro, Bolivia
+    // Ubicación exacta del evento/estadio
+    const lat = -17.965487;
+    const lng = -67.106642;
 
-    map.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      startX = e.pageX - map.offsetLeft;
-      startY = e.pageY - map.offsetTop;
-      scrollLeft = map.scrollLeft;
-      scrollTop = map.scrollTop;
+    // Inicializar el mapa con zoom 18 para mostrar más detalle
+    const map = L.map('map').setView([lat, lng], 18);
+
+    // Agregar capa de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Crear un icono personalizado para el asiento
+    const seatIcon = L.divIcon({
+      html: `
+        <div class="bg-yellow-400 border-2 border-yellow-600 rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
+          <svg class="w-4 h-4 text-yellow-800" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+          </svg>
+        </div>
+      `,
+      className: 'custom-seat-marker',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -12]
     });
 
-    map.addEventListener('mouseleave', () => {
-      isDragging = false;
+    // Agregar marcador para la ubicación del asiento
+    const seatMarker = L.marker([lat, lng], { icon: seatIcon }).addTo(map);
+    
+    // Agregar popup al marcador
+    seatMarker.bindPopup(`
+      <div class="text-center">
+        <h3 class="font-bold text-lg mb-2">Zona Norte - Oruro</h3>
+        <p class="text-sm mb-2">Tu asiento se encuentra aquí</p>
+        <p class="text-xs text-gray-600">Precio: $200</p>
+        <p class="text-xs text-gray-500 mt-1">Oruro, Bolivia</p>
+      </div>
+    `);
+
+    // Agregar círculo para mostrar el área de la zona
+    const zoneCircle = L.circle([lat, lng], {
+      color: 'red',
+      fillColor: '#f03',
+      fillOpacity: 0.2,
+      radius: 50
+    }).addTo(map);
+
+    // Agregar algunos puntos de interés de Oruro
+    const poiData = [
+      { lat: lat + 0.002, lng: lng + 0.003, name: "Restaurante Local", type: "restaurante" },
+      { lat: lat - 0.001, lng: lng + 0.002, name: "Servicios Higiénicos", type: "baño" },
+      { lat: lat + 0.003, lng: lng - 0.002, name: "Hotel Oruro", type: "hotel" },
+      { lat: lat - 0.002, lng: lng - 0.001, name: "Plaza 10 de Febrero", type: "plaza" },
+      { lat: lat + 0.001, lng: lng - 0.003, name: "Terminal de Buses", type: "transporte" }
+    ];
+
+    poiData.forEach(poi => {
+      let iconColor = poi.type === 'restaurante' ? 'bg-green-500' : 
+                     poi.type === 'baño' ? 'bg-blue-500' : 
+                     poi.type === 'hotel' ? 'bg-purple-500' :
+                     poi.type === 'plaza' ? 'bg-orange-500' :
+                     poi.type === 'transporte' ? 'bg-red-500' : 'bg-gray-500';
+      
+      const poiIcon = L.divIcon({
+        html: `<div class="${iconColor} rounded-full w-4 h-4 border-2 border-white shadow-lg"></div>`,
+        className: 'custom-poi-marker',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+
+      L.marker([poi.lat, poi.lng], { icon: poiIcon })
+        .addTo(map)
+        .bindPopup(`<strong>${poi.name}</strong><br>Tipo: ${poi.type}<br><small>Oruro, Bolivia</small>`);
     });
 
-    map.addEventListener('mouseup', () => {
-      isDragging = false;
+    // Funcionalidad del select de filtros
+    const filterSelect = document.querySelector('select');
+    filterSelect.addEventListener('change', (e) => {
+      const selectedType = e.target.value;
+      console.log('Filtrar por:', selectedType);
+      // Aquí puedes agregar lógica para filtrar los marcadores
     });
 
-    map.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      e.preventDefault();
-      const x = e.pageX - map.offsetLeft;
-      const y = e.pageY - map.offsetTop;
-      const walkX = (x - startX) * 2;
-      const walkY = (y - startY) * 2;
-      map.scrollLeft = scrollLeft - walkX;
-      map.scrollTop = scrollTop - walkY;
+    // Agregar controles personalizados al mapa
+    const customControl = L.Control.extend({
+      onAdd: function(map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        container.style.backgroundColor = 'white';
+        container.style.width = '40px';
+        container.style.height = '80px';
+        
+        const zoomInBtn = L.DomUtil.create('a', '', container);
+        zoomInBtn.innerHTML = '+';
+        zoomInBtn.style.display = 'block';
+        zoomInBtn.style.textAlign = 'center';
+        zoomInBtn.style.lineHeight = '40px';
+        zoomInBtn.style.textDecoration = 'none';
+        zoomInBtn.style.color = 'black';
+        zoomInBtn.style.borderBottom = '1px solid #ccc';
+        zoomInBtn.href = '#';
+        zoomInBtn.title = 'Zoom in';
+
+        const zoomOutBtn = L.DomUtil.create('a', '', container);
+        zoomOutBtn.innerHTML = '-';
+        zoomOutBtn.style.display = 'block';
+        zoomOutBtn.style.textAlign = 'center';
+        zoomOutBtn.style.lineHeight = '40px';
+        zoomOutBtn.style.textDecoration = 'none';
+        zoomOutBtn.style.color = 'black';
+        zoomOutBtn.href = '#';
+        zoomOutBtn.title = 'Zoom out';
+
+        L.DomEvent.on(zoomInBtn, 'click', function(e) {
+          L.DomEvent.stopPropagation(e);
+          L.DomEvent.preventDefault(e);
+          map.zoomIn();
+        });
+
+        L.DomEvent.on(zoomOutBtn, 'click', function(e) {
+          L.DomEvent.stopPropagation(e);
+          L.DomEvent.preventDefault(e);
+          map.zoomOut();
+        });
+
+        return container;
+      },
+      onRemove: function(map) {
+        // Nothing to do here
+      }
     });
+
+    // Agregar el control personalizado al mapa
+    new customControl({ position: 'topleft' }).addTo(map);
   });
 </script>
 
 <style>
-  /* Estilos adicionales */
-  .h-full.bg-gray-200 {
-    cursor: grab;
+  /* Estilos para los marcadores personalizados */
+  .custom-seat-marker {
+    background: transparent;
+    border: none;
   }
-  .h-full.bg-gray-200:active {
-    cursor: grabbing;
+  
+  .custom-poi-marker {
+    background: transparent;
+    border: none;
+  }
+
+  /* Asegurar que el mapa tenga el z-index correcto */
+  #map {
+    z-index: 1;
+  }
+
+  /* Estilos para los controles del mapa */
+  .leaflet-control-custom {
+    cursor: pointer;
+  }
+
+  .leaflet-control-custom a:hover {
+    background-color: #f0f0f0;
   }
 </style>
