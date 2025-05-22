@@ -1,154 +1,535 @@
 ---
+// src/components/LoginModal.astro - Estilo acorde al diseño del carnaval
 ---
-<div id="loginModal" class="fixed inset-0 z-50 hidden">
-  <!-- Backdrop with blur -->
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-  
-  <!-- Modal -->
-  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
-    <div class="bg-white rounded-2xl shadow-xl p-8">
-      <!-- Close button -->
-      <button 
-        onclick="closeLoginModal()" 
-        class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-        aria-label="Cerrar modal"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
 
-      <!-- Header -->
-      <div class="text-center mb-8">
-        <h2 class="text-2xl font-bold text-gray-900">Iniciar Sesión</h2>
-        <p class="mt-2 text-gray-600">Bienvenido al Carnaval de Oruro</p>
-      </div>
-
-      <!-- Social Login Buttons -->
-      <div class="space-y-3">
-        <button class="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-          <img src="/images/google.svg" alt="" class="w-5 h-5" />
-          <span class="text-gray-700">Continuar con Google</span>
-        </button>
-        
-        <button class="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-[#1877F2] text-white rounded-lg hover:bg-[#1865F2] transition-colors">
-          <img src="/images/facebook.svg" alt="" class="w-5 h-5" />
-          <span>Continuar con Facebook</span>
+<!-- Modal de Login -->
+<div id="login-modal" class="modal-overlay hidden">
+  <div class="modal-container">
+    <div class="modal-content">
+      <!-- Header del Modal -->
+      <div class="modal-header">
+        <h2 class="modal-title">Carnaval de Oruro</h2>
+        <p class="modal-subtitle">Inicia sesión para continuar</p>
+        <button id="close-modal" class="modal-close">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
         </button>
       </div>
 
-      <!-- Divider -->
-      <div class="relative my-8">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-300"></div>
-        </div>
-        <div class="relative flex justify-center text-sm">
-          <span class="px-2 bg-white text-gray-500">O</span>
-        </div>
-      </div>
+      <!-- Contenido del Modal -->
+      <div class="modal-body">
+        <!-- Login con Google -->
+        <a href="/api/auth/login" class="google-login-btn">
+          <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continuar con Google
+        </a>
 
-      <!-- Login Form -->
-      <form class="space-y-4">
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          />
+        <!-- Separador -->
+        <div class="separator">
+          <div class="separator-line"></div>
+          <span class="separator-text">o continúa con email</span>
+          <div class="separator-line"></div>
         </div>
 
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          />
-        </div>
-
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+        <!-- Formulario de Login -->
+        <form action="/api/auth/signin" method="POST" class="login-form">
+          <div class="form-group">
+            <label for="email" class="form-label">Correo electrónico</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              placeholder="tu@email.com"
+              class="form-input"
+              required
             />
-            <label for="remember-me" class="ml-2 block text-sm text-gray-700">
-              Recordarme
-            </label>
           </div>
 
-          <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">
-            ¿Olvidaste tu contraseña?
-          </a>
+          <div class="form-group">
+            <label for="password" class="form-label">Contraseña</label>
+            <div class="password-input-container">
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                placeholder="Tu contraseña"
+                class="form-input"
+                required
+              />
+              <button type="button" class="password-toggle" onclick="togglePassword()">
+                <svg class="password-icon show-password" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <svg class="password-icon hide-password hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-options">
+            <label class="checkbox-container">
+              <input type="checkbox" name="remember">
+              <span class="checkmark"></span>
+              Recordarme
+            </label>
+            <a href="/forgot-password" class="forgot-password">¿Olvidaste tu contraseña?</a>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <span class="submit-text">Iniciar Sesión</span>
+            <div class="submit-spinner hidden">
+              <svg class="spinner" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+          </button>
+        </form>
+
+        <!-- Footer del Modal -->
+        <div class="modal-footer">
+          <p class="register-link">
+            ¿No tienes cuenta? 
+            <a href="/signup" class="register-btn">Regístrate aquí</a>
+          </p>
         </div>
-
-        <button
-          type="submit"
-          class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-navy-600 to-red-600 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Iniciar Sesión
-        </button>
-      </form>
-
-      <!-- Sign up link -->
-      <p class="mt-6 text-center text-sm text-gray-600">
-        ¿No tienes una cuenta?
-        <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
-          Regístrate aquí
-        </a>
-      </p>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-  window.openLoginModal = () => {
-    const modal = document.getElementById('loginModal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-  };
+  // Funcionalidad del modal
+  function openLoginModal() {
+    document.getElementById('login-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
 
-  window.closeLoginModal = () => {
-    const modal = document.getElementById('loginModal');
-    if (modal) {
-      modal.classList.add('hidden');
-      document.body.style.overflow = 'auto';
-    }
-  };
+  function closeLoginModal() {
+    document.getElementById('login-modal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+  }
 
-  // Close modal when clicking outside
-  document.addEventListener('click', (e) => {
-    const modal = document.getElementById('loginModal');
-    if (modal && !modal.classList.contains('hidden')) {
-      const modalContent = modal.querySelector('.bg-white');
-      if (e.target === modal.firstElementChild) {
+  function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const showIcon = document.querySelector('.show-password');
+    const hideIcon = document.querySelector('.hide-password');
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      showIcon.classList.add('hidden');
+      hideIcon.classList.remove('hidden');
+    } else {
+      passwordInput.type = 'password';
+      showIcon.classList.remove('hidden');
+      hideIcon.classList.add('hidden');
+    }
+  }
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('login-modal');
+    const closeBtn = document.getElementById('close-modal');
+    const loginForm = document.querySelector('.login-form');
+    
+    // Cerrar modal
+    closeBtn?.addEventListener('click', closeLoginModal);
+    
+    // Cerrar modal al hacer click fuera
+    modal?.addEventListener('click', function(e) {
+      if (e.target === modal) {
         closeLoginModal();
       }
-    }
-  });
+    });
 
-  // Close modal with Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeLoginModal();
-    }
+    // Cerrar con tecla ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !modal?.classList.contains('hidden')) {
+        closeLoginModal();
+      }
+    });
+
+    // Manejar envío del formulario
+    loginForm?.addEventListener('submit', function(e) {
+      const submitBtn = this.querySelector('.submit-btn');
+      const submitText = this.querySelector('.submit-text');
+      const submitSpinner = this.querySelector('.submit-spinner');
+      
+      // Mostrar spinner
+      submitBtn.disabled = true;
+      submitText.classList.add('hidden');
+      submitSpinner.classList.remove('hidden');
+    });
+
+    // Exponer funciones globalmente para usar desde otros archivos
+    window.openLoginModal = openLoginModal;
+    window.closeLoginModal = closeLoginModal;
   });
 </script>
 
 <style>
-  .from-navy-600 {
-    --tw-gradient-from: #1a237e;
+  /* Estilos del Modal con temática del Carnaval de Oruro */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: modal-fade-in 0.3s ease-out;
   }
-  .to-red-600 {
-    --tw-gradient-to: #b71c1c;
+
+  .modal-container {
+    max-width: 450px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
   }
-</style> 
+
+  .modal-content {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    animation: modal-slide-up 0.4s ease-out;
+  }
+
+  .modal-header {
+    padding: 32px 32px 16px 32px;
+    text-align: center;
+    position: relative;
+  }
+
+  .modal-title {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff6b35, #f7931e, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .modal-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: rotate(90deg);
+  }
+
+  .modal-body {
+    padding: 16px 32px 32px 32px;
+  }
+
+  .google-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #db4437, #ea4335);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 15px rgba(219, 68, 55, 0.3);
+  }
+
+  .google-login-btn:hover {
+    background: linear-gradient(135deg, #ea4335, #db4437);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(219, 68, 55, 0.4);
+  }
+
+  .separator {
+    display: flex;
+    align-items: center;
+    margin: 24px 0;
+  }
+
+  .separator-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .separator-text {
+    padding: 0 16px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .form-input {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #ff6b35;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  }
+
+  .form-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .password-input-container {
+    position: relative;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .password-toggle:hover {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .password-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0;
+  }
+
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .checkmark {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .checkbox-container input[type="checkbox"] {
+    display: none;
+  }
+
+  .checkbox-container input[type="checkbox"]:checked + .checkmark {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    border-color: #ff6b35;
+  }
+
+  .checkbox-container input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+  }
+
+  .forgot-password {
+    color: #ff6b35;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+  }
+
+  .forgot-password:hover {
+    color: #f7931e;
+  }
+
+  .submit-btn {
+    background: linear-gradient(135deg, #ff6b35, #f7931e, #ffd700);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+  }
+
+  .modal-footer {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .register-link {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .register-btn {
+    color: #ff6b35;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+  }
+
+  .register-btn:hover {
+    color: #f7931e;
+  }
+
+  /* Animaciones */
+  @keyframes modal-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes modal-slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(50px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .modal-content {
+      margin: 10px;
+      border-radius: 16px;
+    }
+
+    .modal-header,
+    .modal-body {
+      padding: 24px 20px;
+    }
+
+    .modal-title {
+      font-size: 24px;
+    }
+  }
+
+  /* Estados de utilidad */
+  .hidden {
+    display: none !important;
+  }
+</style>

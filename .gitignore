@@ -1,3 +1,328 @@
+# ========================================
+# VARIABLES DE ENTORNO Y CONFIGURACIÓN SENSIBLE
+# ========================================
+
+# Variables de entorno (¡MUY IMPORTANTE!)
 .env
-.env.production
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+
+# Archivos de configuración con datos sensibles
+config/secrets.yml
+config/database.yml
+config/master.key
+
+# ========================================
+# NODE.JS / NPM / YARN
+# ========================================
+
+# Dependencias
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Cache de npm/yarn
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Archivos de lock opcionales (si usas diferentes gestores)
+# Descomenta si no quieres versionar estos archivos:
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ========================================
+# ASTRO / FRONTEND
+# ========================================
+
+# Build de Astro
+dist/
+.astro/
+
+# Cache de Vite
+.vite/
+
+# Archivos de desarrollo de Astro
+.astro-cache/
+
+# ========================================
+# PYTHON / FASTAPI / BACKEND
+# ========================================
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# ========================================
+# DOCKER
+# ========================================
+
+# No ignorar docker-compose.yml y Dockerfile, pero sí algunos archivos temporales
+.dockerignore
+
+# Volúmenes de Docker (si los tienes locales)
+volumes/
+docker-volumes/
+
+# Logs de contenedores
+*.log
+
+# ========================================
+# BASES DE DATOS
+# ========================================
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# PostgreSQL
+*.dump
+*.sql.backup
+
+# Archivos de respaldo de BD
+backup/
+dumps/
+
+# ========================================
+# EDITORES E IDEs
+# ========================================
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# JetBrains IDEs
+.idea/
+*.swp
+*.swo
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ========================================
+# SISTEMA OPERATIVO
+# ========================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ========================================
+# LOGS Y ARCHIVOS TEMPORALES
+# ========================================
+
+# Logs generales
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output/
+
+# ========================================
+# ESPECÍFICO DEL PROYECTO
+# ========================================
+
+# Archivos de prueba y desarrollo
+test-files/
+temp/
+tmp/
+scratch/
+
+# Documentos personales o notas
+notes.md
+TODO.md
+.notes/
+
+# Archivos de respaldo
+*.bak
+*.backup
+*.old
+
+# Certificados SSL locales
+*.pem
+*.key
+*.crt
+*.csr
+
+# Uploads/archivos subidos en desarrollo
+uploads/
+media/temp/
+
+# ========================================
+# DEPLOYMENT Y CI/CD
+# ========================================
+
+# Archivos de build para diferentes entornos
+.next/
+.nuxt/
+.output/
+.vercel/
+.netlify/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# ========================================
+# OPCIONAL: Archivos que PODRÍAS querer ignorar
+# ========================================
+
+# Descomenta si no quieres versionar estos archivos:
+
+# Configuración específica del desarrollador
+# .vscode/settings.json
+
+# Archivos de documentación generados
+# docs/_build/
+# site/
+
+# Archivos de traducción compilados
+# *.mo
+
+# ========================================
+# MANTENER EN GIT (ejemplos)
+# ========================================
+
+# Estos archivos SÍ deben estar en git:
+# !.gitkeep
+# !.env.example
+# !docker-compose.yml
+# !Dockerfile
+# !README.md

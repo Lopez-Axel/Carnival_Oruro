@@ -1,202 +1,157 @@
 ---
-// src/pages/dashboard.astro - Con debug completo
-import Layout from '../layouts/Layout.astro';
+// src/pages/dashboard.astro - Versión simple con colores del carnaval
+import MainLayout from '../layouts/MainLayout.astro';
 
-console.log('🏠 Dashboard: Verificando usuario en locals');
-
-// El middleware ya verificó la autenticación
 const user = Astro.locals.user;
 
-console.log('👤 Usuario completo en dashboard:', {
-  hasUser: !!user,
-  hasUserData: !!user?.user,
-  hasProfile: !!user?.profile,
-  userEmail: user?.user?.email,
-  userId: user?.user?.id,
-  profileData: user?.profile,
-  userMetadata: user?.user?.user_metadata,
-  allUserData: user?.user
-});
-
 if (!user) {
-  console.log('❌ No hay usuario, redirigiendo a signin');
   return Astro.redirect('/signin');
 }
 
 const { profile } = user;
 const userData = user.user;
-
-// Información de fallback desde user_metadata si no hay perfil
-const fallbackName = userData?.user_metadata?.full_name || 
-                     userData?.user_metadata?.name || 
-                     userData?.email;
+const fallbackName = userData?.user_metadata?.full_name || userData?.user_metadata?.name || userData?.email?.split('@')[0];
 const fallbackEmail = userData?.email;
 const fallbackRole = profile?.role || 'cliente';
+const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadata?.picture;
 ---
 
-<Layout title="Dashboard - Carnaval de Oruro">
-  <main class="container mx-auto px-4 py-8">
-    <!-- Panel de Debug (remover en producción) -->
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-      <h4 class="font-semibold text-yellow-800 mb-2">🐛 Debug Info:</h4>
-      <div class="text-xs text-yellow-700 space-y-1">
-        <p><strong>Usuario autenticado:</strong> {userData ? 'Sí' : 'No'}</p>
-        <p><strong>Email:</strong> {fallbackEmail}</p>
-        <p><strong>Nombre (metadata):</strong> {userData?.user_metadata?.full_name}</p>
-        <p><strong>Perfil encontrado:</strong> {profile ? 'Sí' : 'No'}</p>
-        {profile && (
-          <>
-            <p><strong>Perfil ID:</strong> {profile.id}</p>
-            <p><strong>Perfil Email:</strong> {profile.email}</p>
-            <p><strong>Perfil Rol:</strong> {profile.role}</p>
-            <p><strong>Perfil Nombre:</strong> {profile.full_name}</p>
-          </>
+<MainLayout>
+  <div class="dashboard">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="user-info">
+          <div class="avatar">
+            {userAvatar ? (
+              <img src={userAvatar} alt="Avatar" />
+            ) : (
+              <div class="avatar-placeholder">
+                {fallbackName?.charAt(0)?.toUpperCase() || '👤'}
+              </div>
+            )}
+          </div>
+          <div class="user-details">
+            <h1>¡Bienvenido al Carnaval! 🎭</h1>
+            <p class="name">{profile?.full_name || fallbackName}</p>
+            <span class="role role-{fallbackRole}">{fallbackRole.toUpperCase()}</span>
+          </div>
+        </div>
+        <a href="/api/auth/signout" class="signout-btn">Cerrar Sesión</a>
+      </div>
+    </header>
+
+    <!-- Debug (solo desarrollo) -->
+    {import.meta.env.DEV && (
+      <div class="debug-info">
+        <h3>🐛 Info de Debug</h3>
+        <p>Email: {fallbackEmail}</p>
+        <p>Perfil: {profile ? 'Encontrado' : 'No encontrado'}</p>
+        {!profile && (
+          <button onclick="createProfile()" class="create-profile">
+            Crear Perfil
+          </button>
         )}
       </div>
-      
-      <!-- Datos completos para debug -->
-      <details class="mt-2">
-        <summary class="cursor-pointer text-yellow-800 font-medium">Ver datos completos</summary>
-        <pre class="text-xs bg-yellow-100 p-2 rounded mt-2 overflow-x-auto">{JSON.stringify({
-          userData: userData,
-          profile: profile
-        }, null, 2)}</pre>
-      </details>
+    )}
+
+    <!-- Cards principales -->
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">🎫</div>
+        <h3>Mis Tickets</h3>
+        <p>Ver tus entradas del carnaval</p>
+        <a href="/tickets" class="card-btn">Ver Tickets</a>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🛒</div>
+        <h3>Comprar Tickets</h3>
+        <p>Entradas disponibles</p>
+        <a href="/eventos" class="card-btn">Comprar</a>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">📅</div>
+        <h3>Eventos</h3>
+        <p>Próximos eventos del carnaval</p>
+        <a href="/eventos" class="card-btn">Ver Eventos</a>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">⚙️</div>
+        <h3>Mi Perfil</h3>
+        <p>Configurar cuenta</p>
+        <a href="/profile" class="card-btn">Editar</a>
+      </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md p-6">
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">
-          Bienvenido, {profile?.full_name || fallbackName}
-        </h1>
-        <div class="flex items-center space-x-4">
-          {profile?.role ? (
-            <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-              {profile.role.toUpperCase()}
-            </span>
-          ) : (
-            <span class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-              {fallbackRole.toUpperCase()} (TEMP)
-            </span>
+    <!-- Sección por rol -->
+    {(profile?.role === 'vendedor' || profile?.role === 'administrador') && (
+      <div class="role-section">
+        <h2>Panel de {profile.role === 'administrador' ? 'Administración' : 'Vendedor'}</h2>
+        <div class="role-cards">
+          {profile.role === 'administrador' && (
+            <>
+              <div class="role-card">
+                <span class="role-icon">👥</span>
+                <h4>Usuarios</h4>
+                <a href="/admin/users">Gestionar</a>
+              </div>
+              <div class="role-card">
+                <span class="role-icon">📊</span>
+                <h4>Reportes</h4>
+                <a href="/admin/reports">Ver</a>
+              </div>
+            </>
           )}
-          <a href="/api/auth/signout" class="text-red-600 hover:text-red-800">
-            Cerrar Sesión
-          </a>
+          {(profile?.role === 'vendedor' || profile?.role === 'administrador') && (
+            <>
+              <div class="role-card">
+                <span class="role-icon">💰</span>
+                <h4>Vender</h4>
+                <a href="/vendedor/sell">Vender</a>
+              </div>
+              <div class="role-card">
+                <span class="role-icon">📋</span>
+                <h4>Mis Ventas</h4>
+                <a href="/vendedor/sales">Ver</a>
+              </div>
+            </>
+          )}
         </div>
       </div>
+    )}
 
-      <!-- Aviso si no hay perfil -->
-      {!profile && (
-        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-          <div class="flex items-center">
-            <svg class="w-5 h-5 text-orange-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-            </svg>
-            <div>
-              <h3 class="text-orange-800 font-semibold">Perfil incompleto</h3>
-              <p class="text-orange-700 text-sm">Tu perfil se está configurando. Algunas funciones pueden estar limitadas.</p>
-              <button 
-                onclick="createProfile()" 
-                class="mt-2 bg-orange-600 text-white px-4 py-2 rounded text-sm hover:bg-orange-700">
-                Crear perfil ahora
-              </button>
-            </div>
-          </div>
+    <!-- Información de cuenta -->
+    <div class="account-info">
+      <h2>Información de Cuenta</h2>
+      <div class="info-items">
+        <div class="info-item">
+          <span>Email:</span>
+          <span>{profile?.email || fallbackEmail}</span>
         </div>
-      )}
-
-      <!-- Contenido basado en rol -->
-      {(profile?.role === 'administrador') && (
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div class="bg-red-50 p-4 rounded-lg border border-red-200">
-            <h3 class="text-lg font-semibold text-red-800 mb-2">Panel de Administración</h3>
-            <p class="text-red-600 mb-4">Gestiona usuarios, eventos y configuraciones</p>
-            <a href="/admin" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-              Ir al Admin
-            </a>
-          </div>
-          <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-            <h3 class="text-lg font-semibold text-green-800 mb-2">Reportes</h3>
-            <p class="text-green-600 mb-4">Ver estadísticas y reportes de ventas</p>
-            <a href="/admin/reports" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-              Ver Reportes
-            </a>
-          </div>
-          <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
-            <h3 class="text-lg font-semibold text-purple-800 mb-2">Usuarios</h3>
-            <p class="text-purple-600 mb-4">Gestionar usuarios y permisos</p>
-            <a href="/admin/users" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
-              Gestionar Usuarios
-            </a>
-          </div>
+        <div class="info-item">
+          <span>Rol:</span>
+          <span>{fallbackRole}</span>
         </div>
-      )}
-
-      {(profile?.role === 'vendedor' || profile?.role === 'administrador') && (
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h3 class="text-lg font-semibold text-blue-800 mb-2">Vender Tickets</h3>
-            <p class="text-blue-600 mb-4">Procesar ventas de entradas</p>
-            <a href="/vendedor/sell" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Vender Tickets
-            </a>
-          </div>
-          <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-            <h3 class="text-lg font-semibold text-indigo-800 mb-2">Mis Ventas</h3>
-            <p class="text-indigo-600 mb-4">Ver historial de ventas</p>
-            <a href="/vendedor/sales" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-              Ver Ventas
-            </a>
-          </div>
+        <div class="info-item">
+          <span>Estado:</span>
+          <span class="status-{profile?.is_active ? 'active' : 'inactive'}">
+            {profile?.is_active ? 'Activo' : 'Inactivo'}
+          </span>
         </div>
-      )}
-
-      <!-- Sección común para todos los usuarios -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-          <h3 class="text-lg font-semibold text-yellow-800 mb-2">Mis Tickets</h3>
-          <p class="text-yellow-600 mb-4">Ver tickets comprados</p>
-          <a href="/tickets" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
-            Ver Mis Tickets
-          </a>
-        </div>
-        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-800 mb-2">Mi Perfil</h3>
-          <p class="text-gray-600 mb-4">Actualizar información personal</p>
-          <a href="/profile" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-            Editar Perfil
-          </a>
-        </div>
-      </div>
-
-      <!-- Información del usuario -->
-      <div class="mt-8 p-4 bg-gray-50 rounded-lg">
-        <h4 class="font-semibold text-gray-800 mb-2">Información de la cuenta:</h4>
-        <p class="text-gray-600">Email: {profile?.email || fallbackEmail}</p>
-        <p class="text-gray-600">Nombre: {profile?.full_name || fallbackName}</p>
-        <p class="text-gray-600">Rol: {profile?.role || fallbackRole}</p>
-        {profile && (
-          <>
-            <p class="text-gray-600">Estado: {profile.is_active ? 'Activo' : 'Inactivo'}</p>
-            <p class="text-gray-600">Miembro desde: {new Date(profile.created_at || '').toLocaleDateString('es-BO')}</p>
-          </>
-        )}
-        <p class="text-gray-600">ID Usuario: {userData?.id}</p>
-        <p class="text-gray-600">Proveedor: {userData?.app_metadata?.provider || 'email'}</p>
       </div>
     </div>
-  </main>
-</Layout>
+  </div>
+</MainLayout>
 
 <script define:vars={{ userId: userData?.id, userEmail: fallbackEmail, userName: fallbackName }}>
-  // Función para crear perfil manualmente
   window.createProfile = async function() {
     try {
       const response = await fetch('/api/auth/create-profile', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userId,
           email: userEmail,
@@ -205,21 +160,322 @@ const fallbackRole = profile?.role || 'cliente';
       });
 
       if (response.ok) {
-        alert('Perfil creado correctamente. Recargando página...');
+        alert('Perfil creado. Recargando...');
         window.location.reload();
       } else {
-        const error = await response.text();
-        alert('Error creando perfil: ' + error);
+        alert('Error creando perfil');
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('Error inesperado creando perfil');
+      alert('Error inesperado');
     }
   };
 </script>
 
 <style>
-  .container {
+  /* Colores del Carnaval de Oruro */
+  :root {
+    --carnival-orange: #ff6b35;
+    --carnival-gold: #f7931e;
+    --carnival-yellow: #ffd700;
+    --carnival-red: #dc2626;
+    --carnival-green: #16a34a;
+    --carnival-blue: #2563eb;
+    --dark-bg: #1a1a2e;
+    --dark-card: rgba(255, 255, 255, 0.05);
+    --dark-border: rgba(255, 255, 255, 0.1);
+  }
+
+  .dashboard {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 50%, #0f1419 100%);
+    color: white;
+    padding: 20px;
+  }
+
+  /* Header */
+  .dashboard-header {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+    backdrop-filter: blur(10px);
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--carnival-orange);
+  }
+
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .user-details h1 {
+    margin: 0;
+    font-size: 24px;
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold), var(--carnival-yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .user-details .name {
+    margin: 4px 0;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .role {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .role-cliente { background: var(--carnival-green); }
+  .role-vendedor { background: var(--carnival-blue); }
+  .role-administrador { background: var(--carnival-red); }
+
+  .signout-btn {
+    background: rgba(220, 38, 38, 0.2);
+    color: #ef4444;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    transition: all 0.3s;
+  }
+
+  .signout-btn:hover {
+    background: rgba(220, 38, 38, 0.3);
+  }
+
+  /* Debug */
+  .debug-info {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .debug-info h3 {
+    margin: 0 0 12px 0;
+    color: #fbbf24;
+  }
+
+  .create-profile {
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  /* Cards Grid */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto 32px;
+  }
+
+  .card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .card-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+
+  .card h3 {
+    margin: 0 0 8px 0;
+    color: white;
+  }
+
+  .card p {
+    margin: 0 0 16px 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+  }
+
+  .card-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+
+  .card-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+  }
+
+  /* Role Section */
+  .role-section {
+    max-width: 1200px;
+    margin: 0 auto 32px;
+  }
+
+  .role-section h2 {
+    text-align: center;
+    margin-bottom: 24px;
+    color: white;
+  }
+
+  .role-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .role-card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .role-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .role-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .role-card h4 {
+    margin: 0 0 12px 0;
+    color: white;
+  }
+
+  .role-card a {
+    color: var(--carnival-orange);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  /* Account Info */
+  .account-info {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    padding: 24px;
+    backdrop-filter: blur(10px);
+  }
+
+  .account-info h2 {
+    margin: 0 0 20px 0;
+    text-align: center;
+    color: white;
+  }
+
+  .info-items {
+    display: grid;
+    gap: 12px;
+  }
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+  }
+
+  .info-item span:first-child {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .info-item span:last-child {
+    color: white;
+    font-weight: 500;
+  }
+
+  .status-active { color: var(--carnival-green) !important; }
+  .status-inactive { color: var(--carnival-red) !important; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .dashboard {
+      padding: 15px;
+    }
+    
+    .header-content {
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .user-info {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .cards-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .info-item {
+      flex-direction: column;
+      gap: 4px;
+    }
   }
 </style>

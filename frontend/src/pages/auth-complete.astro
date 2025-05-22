@@ -1,8 +1,7 @@
 ---
-// src/pages/auth-complete.astro - CORREGIDO para manejar fragmentos
+// src/pages/auth-complete.astro - Sin errores de sintaxis
 import Layout from '../layouts/Layout.astro';
 
-// Esta página maneja tanto códigos (?code=) como fragmentos (#access_token=)
 const code = Astro.url.searchParams.get('code');
 const error = Astro.url.searchParams.get('error');
 const errorDescription = Astro.url.searchParams.get('error_description');
@@ -31,16 +30,12 @@ else if (code) {
     const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     
-    // Intercambiar código por sesión
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
     
     if (exchangeError) {
       authResult.error = exchangeError.message;
     } else if (data.session) {
-      // ✅ Sesión obtenida exitosamente
       const { access_token, refresh_token } = data.session;
-      
-      // Establecer cookies
       const isProduction = import.meta.env.PROD;
       
       Astro.cookies.set("sb-access-token", access_token, {
@@ -65,7 +60,6 @@ else if (code) {
       
       console.log('✅ Autenticación exitosa (server-side) para:', data.user.email);
       
-      // Redirigir inmediatamente al dashboard
       return Astro.redirect('/dashboard');
     }
   } catch (err) {
@@ -73,72 +67,85 @@ else if (code) {
     authResult.error = 'Error procesando autenticación';
   }
 }
-// Si no hay código, probablemente los tokens están en el fragmento
 else {
   authResult.hasFragmentTokens = true;  
   console.log('🔍 No hay código, esperando tokens del fragmento URL...');
 }
+
+// Variables para el template
+const userEmail = authResult.user?.email || '';
+const errorMsg = authResult.error || '';
 ---
 
 <Layout title="Completando autenticación...">
-  <main class="min-h-screen bg-gradient-to-br from-red-400 via-pink-500 to-purple-600 flex items-center justify-center px-6">
-    <div class="max-w-md w-full text-center">
-      <div class="bg-white rounded-lg shadow-xl p-8">
-        {authResult.success ? (
-          <!-- Éxito (Server-side) -->
-          <div class="text-green-600 mb-4">
-            <svg class="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-          </div>
-          <h2 class="text-2xl font-bold text-gray-800 mb-2">¡Autenticación exitosa!</h2>
-          <p class="text-gray-600 mb-4">Bienvenido {authResult.user?.email}</p>
-          <p class="text-sm text-gray-500">Redirigiendo al dashboard...</p>
-        ) : authResult.error ? (
-          <!-- Error -->
-          <div class="text-red-600 mb-4">
-            <svg class="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-            </svg>
-          </div>
-          <h2 class="text-2xl font-bold text-gray-800 mb-2">Error de autenticación</h2>
-          <p class="text-gray-600 mb-4">{authResult.error}</p>
-          <a href="/signin" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
-            Intentar de nuevo
-          </a>
-        ) : (
-          <!-- Procesando tokens del fragmento -->
-          <div id="loading-state">
-            <div class="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Procesando autenticación...</h2>
-            <p class="text-gray-600 mb-2">Verificando credenciales</p>
-            <div id="status-message" class="text-sm text-gray-500"></div>
-          </div>
-          
-          <!-- Estado de éxito (Client-side) -->
-          <div id="success-state" class="hidden">
-            <div class="text-green-600 mb-4">
-              <svg class="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+  <main class="carnival-auth-bg">
+    <div class="carnival-container">
+      <div class="carnival-card">
+        
+        {authResult.success && (
+          <div class="carnival-success">
+            <div class="success-icon">
+              <svg class="success-svg" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
             </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">¡Autenticación exitosa!</h2>
-            <p class="text-gray-600 mb-4" id="user-email"></p>
-            <p class="text-sm text-gray-500">Redirigiendo al dashboard...</p>
+            <h2 class="carnival-title success-title">¡Bienvenido al Carnaval! 🎭</h2>
+            <p class="carnival-subtitle">Autenticación exitosa</p>
+            <div class="user-welcome">Bienvenido {userEmail}</div>
+            <p class="redirect-message">Redirigiendo al dashboard...</p>
           </div>
-          
-          <!-- Estado de error (Client-side) -->
-          <div id="error-state" class="hidden">
-            <div class="text-red-600 mb-4">
-              <svg class="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+        )}
+
+        {authResult.error && (
+          <div class="carnival-error">
+            <div class="error-icon">
+              <svg class="error-svg" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
               </svg>
             </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Error de autenticación</h2>
-            <p class="text-gray-600 mb-4" id="error-message"></p>
-            <a href="/signin" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
-              Intentar de nuevo
-            </a>
+            <h2 class="carnival-title error-title">¡Ups! Algo salió mal 😔</h2>
+            <p class="carnival-subtitle">Error en la autenticación</p>
+            <div class="error-message">{errorMsg}</div>
+            <a href="/signin" class="carnival-btn retry-btn">Intentar de nuevo</a>
+          </div>
+        )}
+
+        {!authResult.success && !authResult.error && (
+          <div>
+            <div id="loading-state">
+              <div class="carnival-spinner">🎭</div>
+              <h2 class="carnival-title processing-title">Completando tu entrada... 🎪</h2>
+              <p class="carnival-subtitle">Verificando credenciales</p>
+              <div id="status-message" class="status-message">Iniciando proceso...</div>
+            </div>
+            
+            <div id="success-state" class="hidden">
+              <div class="carnival-success">
+                <div class="success-icon">
+                  <svg class="success-svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <h2 class="carnival-title success-title">¡Bienvenido al Carnaval!</h2>
+                <p class="carnival-subtitle">Autenticación exitosa</p>
+                <div class="user-welcome" id="user-email-display">Bienvenido</div>
+                <p class="redirect-message">Redirigiendo al dashboard...</p>
+              </div>
+            </div>
+            
+            <div id="error-state" class="hidden">
+              <div class="carnival-error">
+                <div class="error-icon">
+                  <svg class="error-svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <h2 class="carnival-title error-title">¡Ups! Algo salió mal 😔</h2>
+                <p class="carnival-subtitle">Error en la autenticación</p>
+                <div class="error-message" id="error-message-display">Error desconocido</div>
+                <a href="/signin" class="carnival-btn retry-btn">Intentar de nuevo</a>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -147,14 +154,13 @@ else {
 </Layout>
 
 <script>
-  // Script para manejar tokens del fragmento URL
   document.addEventListener('DOMContentLoaded', function() {
     const loadingState = document.getElementById('loading-state');
     const successState = document.getElementById('success-state');
     const errorState = document.getElementById('error-state');
     const statusMessage = document.getElementById('status-message');
-    const userEmail = document.getElementById('user-email');
-    const errorMessage = document.getElementById('error-message');
+    const userEmailDisplay = document.getElementById('user-email-display');
+    const errorMessageDisplay = document.getElementById('error-message-display');
     
     function updateStatus(message) {
       if (statusMessage) statusMessage.textContent = message;
@@ -162,39 +168,35 @@ else {
     }
     
     function showSuccess(email) {
-      loadingState?.classList.add('hidden');
-      successState?.classList.remove('hidden');
-      if (userEmail) userEmail.textContent = `Bienvenido ${email}`;
+      if (loadingState) loadingState.classList.add('hidden');
+      if (successState) successState.classList.remove('hidden');
+      if (userEmailDisplay) userEmailDisplay.textContent = 'Bienvenido ' + email;
     }
     
     function showError(message) {
-      loadingState?.classList.add('hidden');
-      errorState?.classList.remove('hidden');
-      if (errorMessage) errorMessage.textContent = message;
+      if (loadingState) loadingState.classList.add('hidden');
+      if (errorState) errorState.classList.remove('hidden');
+      if (errorMessageDisplay) errorMessageDisplay.textContent = message;
     }
     
     async function handleFragmentTokens() {
       updateStatus('Verificando tokens en URL...');
       
-      // Obtener tokens del hash de la URL
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
       const expiresAt = hashParams.get('expires_at');
-      const tokenType = hashParams.get('token_type');
       
       console.log('🔍 Tokens encontrados:', {
         hasAccessToken: !!accessToken,
         hasRefreshToken: !!refreshToken,
-        expiresAt,
-        tokenType
+        expiresAt
       });
       
       if (accessToken && refreshToken) {
         updateStatus('Guardando sesión...');
         
         try {
-          // Enviar tokens al servidor para que los guarde en cookies
           const response = await fetch('/api/auth/save-session', {
             method: 'POST',
             headers: {
@@ -212,7 +214,6 @@ else {
             updateStatus('¡Éxito! Redirigiendo...');
             showSuccess(result.user.email);
             
-            // Limpiar la URL y redirigir
             window.history.replaceState({}, document.title, window.location.pathname);
             setTimeout(() => {
               window.location.href = '/dashboard';
@@ -231,7 +232,6 @@ else {
       }
     }
     
-    // Verificar si hay tokens en el fragmento URL
     if (window.location.hash.includes('access_token')) {
       console.log('🔍 Detectados tokens en fragmento, procesando...');
       handleFragmentTokens();
@@ -243,11 +243,195 @@ else {
 </script>
 
 <style>
+  .carnival-auth-bg {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .carnival-container {
+    width: 100%;
+    max-width: 450px;
+  }
+
+  .carnival-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 40px 32px;
+    text-align: center;
+    position: relative;
+    animation: slideUp 0.6s ease-out;
+  }
+
+  .carnival-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #ff6b35, #f7931e, #ffd700);
+    border-radius: 20px 20px 0 0;
+  }
+
+  .carnival-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    line-height: 1.2;
+  }
+
+  .success-title {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .error-title {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .processing-title {
+    background: linear-gradient(135deg, #ff6b35, #f7931e, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .carnival-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+    margin: 0 0 24px 0;
+  }
+
+  .success-icon,
+  .error-icon {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .success-svg {
+    width: 64px;
+    height: 64px;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+    border-radius: 50%;
+    padding: 12px;
+  }
+
+  .error-svg {
+    width: 64px;
+    height: 64px;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 50%;
+    padding: 12px;
+  }
+
+  .carnival-spinner {
+    font-size: 60px;
+    margin-bottom: 20px;
+    animation: spin 2s linear infinite;
+  }
+
+  .user-welcome {
+    background: rgba(255, 107, 53, 0.1);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 20px 0;
+    color: #ff6b35;
+    font-weight: 500;
+  }
+
+  .error-message {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 20px 0;
+    color: #fca5a5;
+    font-weight: 500;
+  }
+
+  .status-message {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    margin-top: 16px;
+    min-height: 20px;
+  }
+
+  .redirect-message {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    margin-top: 20px;
+  }
+
+  .carnival-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+  }
+
+  .retry-btn {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+  }
+
+  .retry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
-  .animate-spin {
-    animation: spin 1s linear infinite;
+
+  @media (max-width: 480px) {
+    .carnival-auth-bg {
+      padding: 16px;
+    }
+    
+    .carnival-card {
+      padding: 32px 24px;
+    }
+    
+    .carnival-title {
+      font-size: 24px;
+    }
+    
+    .carnival-spinner {
+      font-size: 48px;
+    }
   }
 </style>

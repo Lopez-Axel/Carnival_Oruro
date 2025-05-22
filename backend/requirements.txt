@@ -10,7 +10,7 @@ sqlalchemy==2.0.30
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
-# Cliente HTTP (para conectar APIs externas como Supabase REST o Disqus)
+# Cliente HTTP (para conectar APIs externas como Supabase REST)
 httpx==0.27.0
 
 # Manejo de variables de entorno
@@ -24,3 +24,26 @@ pydantic==2.7.1
 
 # Email con SendGrid (SMTP o API)
 sendgrid==6.10.0
+
+# NUEVAS DEPENDENCIAS PARA SISTEMA DE VENDEDOR
+# Subida de archivos
+python-multipart==0.0.9
+
+# Manejo de imágenes y archivos
+Pillow==10.3.0
+
+# Generación de QR codes
+qrcode[pil]==7.4.2
+
+# Geolocalización y GIS (para las funcionalidades de mapa que mencionamos antes)
+geopy==2.4.1
+shapely==2.0.4
+
+# Utilidades adicionales
+python-slugify==8.0.4
+
+# Validación de archivos
+python-magic==0.4.27
+
+# Manejo de fechas
+python-dateutil==2.9.0

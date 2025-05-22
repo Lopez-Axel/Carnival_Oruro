@@ -9,11 +9,12 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./backend/app:/code/app
+      - ./backend/.env:/code/.env  # Copiar .env al contenedor
     env_file:
-      - ./backend/.env
+      - ./backend/.env  # Cargar variables desde el archivo
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80", "--reload"]
     ports:
-      - "8000:80"  # Solo si quieres acceso externo
+      - "8000:80"
     networks:
       - app_network
 
@@ -31,5 +32,9 @@ services:
       - HOST=0.0.0.0
       - PORT=4321
       - CHOKIDAR_USEPOLLING=true
+      - VITE_API_URL=http://localhost:8000
     networks:
       - app_network
+    depends_on:
+      - fastapi-app
+    restart: unless-stopped
