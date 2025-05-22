@@ -1,0 +1,168 @@
+---
+// src/pages/test-auth.astro
+import Layout from '../layouts/Layout.astro';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY;
+
+// Crear cliente de Supabase
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Obtener tokens de las cookies
+const accessToken = Astro.cookies.get('sb-access-token')?.value;
+const refreshToken = Astro.cookies.get('sb-refresh-token')?.value;
+
+let authInfo = {
+  hasAccessToken: !!accessToken,
+  hasRefreshToken: !!refreshToken,
+  user: null,
+  profile: null,
+  error: null,
+  sessionInfo: null
+};
+
+// Si hay tokens, intentar obtener información del usuario
+if (accessToken && refreshToken) {
+  try {
+    // Establecer sesión
+    const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken
+    });
+
+    authInfo.sessionInfo = sessionData;
+
+    if (sessionError) {
+      authInfo.error = sessionError.message;
+    } else if (sessionData.user) {
+      authInfo.user = sessionData.user;
+
+      // Obtener perfil
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', sessionData.user.id)
+        .single();
+
+      if (!profileError && profile) {
+        authInfo.profile = profile;
+      } else {
+        authInfo.error = profileError?.message || 'No se pudo obtener el perfil';
+      }
+    }
+  } catch (error) {
+    authInfo.error = error.message;
+  }
+}
+---
+
+<Layout title="Test de Autenticación">
+  <main class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold mb-6">🧪 Test de Autenticación</h1>
+      
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Estado de las Cookies</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class={`p-4 rounded-lg ${authInfo.hasAccessToken ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+            <h3 class="font-semibold mb-2">Access Token</h3>
+            <p class={authInfo.hasAccessToken ? 'text-green-700' : 'text-red-700'}>
+              {authInfo.hasAccessToken ? '✅ Presente' : '❌ No encontrado'}
+            </p>
+            {authInfo.hasAccessToken && (
+              <p class="text-xs text-gray-600 mt-2">
+                {accessToken?.substring(0, 20)}...
+              </p>
+            )}
+          </div>
+          
+          <div class={`p-4 rounded-lg ${authInfo.hasRefreshToken ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+            <h3 class="font-semibold mb-2">Refresh Token</h3>
+            <p class={authInfo.hasRefreshToken ? 'text-green-700' : 'text-red-700'}>
+              {authInfo.hasRefreshToken ? '✅ Presente' : '❌ No encontrado'}
+            </p>
+            {authInfo.hasRefreshToken && (
+              <p class="text-xs text-gray-600 mt-2">
+                {refreshToken?.substring(0, 20)}...
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Información del Usuario</h2>
+        
+        {authInfo.error && (
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <h3 class="text-red-800 font-semibold">❌ Error:</h3>
+            <p class="text-red-700">{authInfo.error}</p>
+          </div>
+        )}
+
+        {authInfo.user ? (
+          <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h3 class="text-green-800 font-semibold mb-2">✅ Usuario Autenticado:</h3>
+            <div class="text-sm text-green-700">
+              <p><strong>ID:</strong> {authInfo.user.id}</p>
+              <p><strong>Email:</strong> {authInfo.user.email}</p>
+              <p><strong>Email Verificado:</strong> {authInfo.user.email_confirmed_at ? 'Sí' : 'No'}</p>
+              <p><strong>Último Login:</strong> {new Date(authInfo.user.last_sign_in_at).toLocaleString('es-BO')}</p>
+            </div>
+          </div>
+        ) : (
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <p class="text-gray-700">👤 No hay usuario autenticado</p>
+          </div>
+        )}
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Perfil del Usuario</h2>
+        
+        {authInfo.profile ? (
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 class="text-blue-800 font-semibold mb-2">📋 Perfil Encontrado:</h3>
+            <div class="text-sm text-blue-700">
+              <p><strong>Nombre:</strong> {authInfo.profile.full_name}</p>
+              <p><strong>Email:</strong> {authInfo.profile.email}</p>
+              <p><strong>Rol:</strong> {authInfo.profile.role}</p>
+              <p><strong>Teléfono:</strong> {authInfo.profile.phone || 'No especificado'}</p>
+              <p><strong>Activo:</strong> {authInfo.profile.is_active ? 'Sí' : 'No'}</p>
+              <p><strong>Creado:</strong> {new Date(authInfo.profile.created_at).toLocaleString('es-BO')}</p>
+            </div>
+          </div>
+        ) : (
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <p class="text-gray-700">📄 No se encontró perfil</p>
+          </div>
+        )}
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Datos Completos (Debug)</h2>
+        <pre class="bg-gray-100 p-4 rounded-lg text-xs overflow-x-auto">{JSON.stringify(authInfo, null, 2)}</pre>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="mt-6 flex gap-4">
+        <a href="/dashboard" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+          Ir al Dashboard
+        </a>
+        <a href="/signin" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+          Iniciar Sesión
+        </a>
+        <a href="/api/auth/signout" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700">
+          Cerrar Sesión
+        </a>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .container {
+    max-width: 1200px;
+  }
+</style>

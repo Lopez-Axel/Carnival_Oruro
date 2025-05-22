@@ -1,36 +1,112 @@
 ---
-// src/pages/dashboard.astro
+// src/pages/dashboard.astro - Con debug completo
 import Layout from '../layouts/Layout.astro';
+
+console.log('🏠 Dashboard: Verificando usuario en locals');
 
 // El middleware ya verificó la autenticación
 const user = Astro.locals.user;
 
+console.log('👤 Usuario completo en dashboard:', {
+  hasUser: !!user,
+  hasUserData: !!user?.user,
+  hasProfile: !!user?.profile,
+  userEmail: user?.user?.email,
+  userId: user?.user?.id,
+  profileData: user?.profile,
+  userMetadata: user?.user?.user_metadata,
+  allUserData: user?.user
+});
+
 if (!user) {
+  console.log('❌ No hay usuario, redirigiendo a signin');
   return Astro.redirect('/signin');
 }
 
 const { profile } = user;
+const userData = user.user;
+
+// Información de fallback desde user_metadata si no hay perfil
+const fallbackName = userData?.user_metadata?.full_name || 
+                     userData?.user_metadata?.name || 
+                     userData?.email;
+const fallbackEmail = userData?.email;
+const fallbackRole = profile?.role || 'cliente';
 ---
 
 <Layout title="Dashboard - Carnaval de Oruro">
   <main class="container mx-auto px-4 py-8">
+    <!-- Panel de Debug (remover en producción) -->
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+      <h4 class="font-semibold text-yellow-800 mb-2">🐛 Debug Info:</h4>
+      <div class="text-xs text-yellow-700 space-y-1">
+        <p><strong>Usuario autenticado:</strong> {userData ? 'Sí' : 'No'}</p>
+        <p><strong>Email:</strong> {fallbackEmail}</p>
+        <p><strong>Nombre (metadata):</strong> {userData?.user_metadata?.full_name}</p>
+        <p><strong>Perfil encontrado:</strong> {profile ? 'Sí' : 'No'}</p>
+        {profile && (
+          <>
+            <p><strong>Perfil ID:</strong> {profile.id}</p>
+            <p><strong>Perfil Email:</strong> {profile.email}</p>
+            <p><strong>Perfil Rol:</strong> {profile.role}</p>
+            <p><strong>Perfil Nombre:</strong> {profile.full_name}</p>
+          </>
+        )}
+      </div>
+      
+      <!-- Datos completos para debug -->
+      <details class="mt-2">
+        <summary class="cursor-pointer text-yellow-800 font-medium">Ver datos completos</summary>
+        <pre class="text-xs bg-yellow-100 p-2 rounded mt-2 overflow-x-auto">{JSON.stringify({
+          userData: userData,
+          profile: profile
+        }, null, 2)}</pre>
+      </details>
+    </div>
+
     <div class="bg-white rounded-lg shadow-md p-6">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-800">
-          Bienvenido, {profile?.full_name || profile?.email}
+          Bienvenido, {profile?.full_name || fallbackName}
         </h1>
         <div class="flex items-center space-x-4">
-          <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-            {profile?.role?.toUpperCase()}
-          </span>
+          {profile?.role ? (
+            <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+              {profile.role.toUpperCase()}
+            </span>
+          ) : (
+            <span class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+              {fallbackRole.toUpperCase()} (TEMP)
+            </span>
+          )}
           <a href="/api/auth/signout" class="text-red-600 hover:text-red-800">
             Cerrar Sesión
           </a>
         </div>
       </div>
 
+      <!-- Aviso si no hay perfil -->
+      {!profile && (
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+          <div class="flex items-center">
+            <svg class="w-5 h-5 text-orange-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <div>
+              <h3 class="text-orange-800 font-semibold">Perfil incompleto</h3>
+              <p class="text-orange-700 text-sm">Tu perfil se está configurando. Algunas funciones pueden estar limitadas.</p>
+              <button 
+                onclick="createProfile()" 
+                class="mt-2 bg-orange-600 text-white px-4 py-2 rounded text-sm hover:bg-orange-700">
+                Crear perfil ahora
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <!-- Contenido basado en rol -->
-      {profile?.role === 'administrador' && (
+      {(profile?.role === 'administrador') && (
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div class="bg-red-50 p-4 rounded-lg border border-red-200">
             <h3 class="text-lg font-semibold text-red-800 mb-2">Panel de Administración</h3>
@@ -96,14 +172,51 @@ const { profile } = user;
       <!-- Información del usuario -->
       <div class="mt-8 p-4 bg-gray-50 rounded-lg">
         <h4 class="font-semibold text-gray-800 mb-2">Información de la cuenta:</h4>
-        <p class="text-gray-600">Email: {profile?.email}</p>
-        <p class="text-gray-600">Rol: {profile?.role}</p>
-        <p class="text-gray-600">Estado: {profile?.is_active ? 'Activo' : 'Inactivo'}</p>
-        <p class="text-gray-600">Miembro desde: {new Date(profile?.created_at || '').toLocaleDateString('es-BO')}</p>
+        <p class="text-gray-600">Email: {profile?.email || fallbackEmail}</p>
+        <p class="text-gray-600">Nombre: {profile?.full_name || fallbackName}</p>
+        <p class="text-gray-600">Rol: {profile?.role || fallbackRole}</p>
+        {profile && (
+          <>
+            <p class="text-gray-600">Estado: {profile.is_active ? 'Activo' : 'Inactivo'}</p>
+            <p class="text-gray-600">Miembro desde: {new Date(profile.created_at || '').toLocaleDateString('es-BO')}</p>
+          </>
+        )}
+        <p class="text-gray-600">ID Usuario: {userData?.id}</p>
+        <p class="text-gray-600">Proveedor: {userData?.app_metadata?.provider || 'email'}</p>
       </div>
     </div>
   </main>
 </Layout>
+
+<script define:vars={{ userId: userData?.id, userEmail: fallbackEmail, userName: fallbackName }}>
+  // Función para crear perfil manualmente
+  window.createProfile = async function() {
+    try {
+      const response = await fetch('/api/auth/create-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          email: userEmail,
+          fullName: userName
+        })
+      });
+
+      if (response.ok) {
+        alert('Perfil creado correctamente. Recargando página...');
+        window.location.reload();
+      } else {
+        const error = await response.text();
+        alert('Error creando perfil: ' + error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error inesperado creando perfil');
+    }
+  };
+</script>
 
 <style>
   .container {

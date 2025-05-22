@@ -1,0 +1,253 @@
+---
+// src/pages/auth-complete.astro - CORREGIDO para manejar fragmentos
+import Layout from '../layouts/Layout.astro';
+
+// Esta página maneja tanto códigos (?code=) como fragmentos (#access_token=)
+const code = Astro.url.searchParams.get('code');
+const error = Astro.url.searchParams.get('error');
+const errorDescription = Astro.url.searchParams.get('error_description');
+
+console.log('🔗 Auth Complete - URL:', Astro.url.toString());
+console.log('🔑 Código:', code ? 'Recibido' : 'No encontrado');
+console.log('❌ Error:', error);
+
+let authResult = {
+  success: false,
+  error: null,
+  user: null,
+  hasFragmentTokens: false,
+  serverSideAuth: false
+};
+
+// Si hay error en los parámetros
+if (error) {
+  authResult.error = errorDescription || error;
+}
+// Si hay código (flujo tradicional)
+else if (code) {
+  try {
+    const supabaseUrl = import.meta.env.SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY;
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    
+    // Intercambiar código por sesión
+    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    
+    if (exchangeError) {
+      authResult.error = exchangeError.message;
+    } else if (data.session) {
+      // ✅ Sesión obtenida exitosamente
+      const { access_token, refresh_token } = data.session;
+      
+      // Establecer cookies
+      const isProduction = import.meta.env.PROD;
+      
+      Astro.cookies.set("sb-access-token", access_token, {
+        path: "/",
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7
+      });
+      
+      Astro.cookies.set("sb-refresh-token", refresh_token, {
+        path: "/",
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 30
+      });
+      
+      authResult.success = true;
+      authResult.user = data.user;
+      authResult.serverSideAuth = true;
+      
+      console.log('✅ Autenticación exitosa (server-side) para:', data.user.email);
+      
+      // Redirigir inmediatamente al dashboard
+      return Astro.redirect('/dashboard');
+    }
+  } catch (err) {
+    console.error('💥 Error procesando código:', err);
+    authResult.error = 'Error procesando autenticación';
+  }
+}
+// Si no hay código, probablemente los tokens están en el fragmento
+else {
+  authResult.hasFragmentTokens = true;  
+  console.log('🔍 No hay código, esperando tokens del fragmento URL...');
+}
+---
+
+<Layout title="Completando autenticación...">
+  <main class="min-h-screen bg-gradient-to-br from-red-400 via-pink-500 to-purple-600 flex items-center justify-center px-6">
+    <div class="max-w-md w-full text-center">
+      <div class="bg-white rounded-lg shadow-xl p-8">
+        {authResult.success ? (
+          <!-- Éxito (Server-side) -->
+          <div class="text-green-600 mb-4">
+            <svg class="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800 mb-2">¡Autenticación exitosa!</h2>
+          <p class="text-gray-600 mb-4">Bienvenido {authResult.user?.email}</p>
+          <p class="text-sm text-gray-500">Redirigiendo al dashboard...</p>
+        ) : authResult.error ? (
+          <!-- Error -->
+          <div class="text-red-600 mb-4">
+            <svg class="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800 mb-2">Error de autenticación</h2>
+          <p class="text-gray-600 mb-4">{authResult.error}</p>
+          <a href="/signin" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+            Intentar de nuevo
+          </a>
+        ) : (
+          <!-- Procesando tokens del fragmento -->
+          <div id="loading-state">
+            <div class="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Procesando autenticación...</h2>
+            <p class="text-gray-600 mb-2">Verificando credenciales</p>
+            <div id="status-message" class="text-sm text-gray-500"></div>
+          </div>
+          
+          <!-- Estado de éxito (Client-side) -->
+          <div id="success-state" class="hidden">
+            <div class="text-green-600 mb-4">
+              <svg class="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">¡Autenticación exitosa!</h2>
+            <p class="text-gray-600 mb-4" id="user-email"></p>
+            <p class="text-sm text-gray-500">Redirigiendo al dashboard...</p>
+          </div>
+          
+          <!-- Estado de error (Client-side) -->
+          <div id="error-state" class="hidden">
+            <div class="text-red-600 mb-4">
+              <svg class="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Error de autenticación</h2>
+            <p class="text-gray-600 mb-4" id="error-message"></p>
+            <a href="/signin" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+              Intentar de nuevo
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  // Script para manejar tokens del fragmento URL
+  document.addEventListener('DOMContentLoaded', function() {
+    const loadingState = document.getElementById('loading-state');
+    const successState = document.getElementById('success-state');
+    const errorState = document.getElementById('error-state');
+    const statusMessage = document.getElementById('status-message');
+    const userEmail = document.getElementById('user-email');
+    const errorMessage = document.getElementById('error-message');
+    
+    function updateStatus(message) {
+      if (statusMessage) statusMessage.textContent = message;
+      console.log('🔄', message);
+    }
+    
+    function showSuccess(email) {
+      loadingState?.classList.add('hidden');
+      successState?.classList.remove('hidden');
+      if (userEmail) userEmail.textContent = `Bienvenido ${email}`;
+    }
+    
+    function showError(message) {
+      loadingState?.classList.add('hidden');
+      errorState?.classList.remove('hidden');
+      if (errorMessage) errorMessage.textContent = message;
+    }
+    
+    async function handleFragmentTokens() {
+      updateStatus('Verificando tokens en URL...');
+      
+      // Obtener tokens del hash de la URL
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const expiresAt = hashParams.get('expires_at');
+      const tokenType = hashParams.get('token_type');
+      
+      console.log('🔍 Tokens encontrados:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        expiresAt,
+        tokenType
+      });
+      
+      if (accessToken && refreshToken) {
+        updateStatus('Guardando sesión...');
+        
+        try {
+          // Enviar tokens al servidor para que los guarde en cookies
+          const response = await fetch('/api/auth/save-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+              expires_at: expiresAt
+            })
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            updateStatus('¡Éxito! Redirigiendo...');
+            showSuccess(result.user.email);
+            
+            // Limpiar la URL y redirigir
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 2000);
+          } else {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Error guardando sesión');
+          }
+        } catch (error) {
+          console.error('❌ Error:', error);
+          showError('Error guardando sesión: ' + error.message);
+        }
+      } else {
+        console.log('❌ No se encontraron tokens válidos');
+        showError('No se encontraron tokens de autenticación válidos');
+      }
+    }
+    
+    // Verificar si hay tokens en el fragmento URL
+    if (window.location.hash.includes('access_token')) {
+      console.log('🔍 Detectados tokens en fragmento, procesando...');
+      handleFragmentTokens();
+    } else {
+      console.log('❌ No hay tokens en el fragmento');
+      showError('No se recibieron tokens de autenticación');
+    }
+  });
+</script>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+</style>
