@@ -1,0 +1,536 @@
+---
+// NewsGrid.astro
+export interface NewsItem {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  category: 'announcement' | 'event' | 'artist' | 'general';
+  date: string;
+  featured?: boolean;
+  size?: 'small' | 'medium' | 'large';
+  href?: string;
+  buttonText?: string;
+  location?: string;
+}
+
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  news: NewsItem[];
+}
+
+const { 
+  title = "News and updates",
+  subtitle = "Stay informed.",
+  news = []
+} = Astro.props;
+---
+
+<section class="news-grid-section">
+  <div class="news-container">
+    <div class="news-header">
+      <h2 class="news-title">{title}</h2>
+      <p class="news-subtitle">{subtitle}</p>
+    </div>
+
+    <div class="news-grid" id="newsGrid">
+      {news.map((item, index) => (
+        <article 
+          class={`news-card ${item.size || 'medium'} ${item.featured ? 'featured' : ''}`}
+          data-category={item.category}
+          style={`animation-delay: ${index * 0.1}s`}
+        >
+          <div class="card-background">
+            <img src={item.image} alt={item.title} loading="lazy" />
+            <div class="card-overlay"></div>
+          </div>
+          
+          <div class="card-content">
+            <div class="card-meta">
+              <span class="category-badge" data-category={item.category}>
+                {item.category === 'announcement' && '📢'}
+                {item.category === 'event' && '🎪'}
+                {item.category === 'artist' && '🎵'}
+                {item.category === 'general' && '📰'}
+                {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+              </span>
+              <time class="news-date">{item.date}</time>
+            </div>
+            
+            <h3 class="card-title">{item.title}</h3>
+            <p class="card-description">{item.description}</p>
+            
+            {item.location && (
+              <div class="location-info">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>{item.location}</span>
+              </div>
+            )}
+            
+            <div class="card-actions">
+              <button class="news-btn primary">
+                {item.buttonText || 'TICKETS & INFO'}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="7" y1="17" x2="17" y2="7"></line>
+                  <polyline points="7,7 17,7 17,17"></polyline>
+                </svg>
+              </button>
+              
+              {item.featured && (
+                <button class="share-btn" aria-label="Share">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {item.featured && (
+            <div class="featured-badge">
+              <span>Featured</span>
+            </div>
+          )}
+        </article>
+      ))}
+    </div>
+    
+    <div class="load-more-section">
+      <button class="load-more-btn" id="loadMoreBtn">
+        <span>Load More News</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6,9 12,15 18,9"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .news-grid-section {
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
+    color: white;
+    padding: 3rem 1rem;
+  }
+
+  .news-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .news-header {
+    margin-bottom: 3rem;
+    text-align: left;
+  }
+
+  .news-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem 0;
+    background: linear-gradient(45deg, #ffffff, #cbd5e0);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+  }
+
+  .news-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    font-weight: 300;
+  }
+
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    grid-auto-rows: minmax(200px, auto);
+  }
+
+  .news-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(20px);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: slideInUp 0.6s ease forwards;
+  }
+
+  .news-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+  }
+
+  .news-card.small {
+    grid-row: span 1;
+  }
+
+  .news-card.medium {
+    grid-row: span 2;
+  }
+
+  .news-card.large {
+    grid-row: span 3;
+    grid-column: span 2;
+  }
+
+  .news-card.featured {
+    border: 2px solid rgba(99, 102, 241, 0.5);
+    background: rgba(99, 102, 241, 0.1);
+  }
+
+  .card-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+
+  .card-background img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+
+  .news-card:hover .card-background img {
+    transform: scale(1.1);
+  }
+
+  .card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.3) 0%,
+      rgba(0, 0, 0, 0.7) 70%,
+      rgba(0, 0, 0, 0.9) 100%
+    );
+  }
+
+  .card-content {
+    position: relative;
+    z-index: 2;
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+  }
+
+  .category-badge[data-category="announcement"] {
+    background: rgba(248, 113, 113, 0.3);
+    border: 1px solid rgba(248, 113, 113, 0.5);
+  }
+
+  .category-badge[data-category="event"] {
+    background: rgba(34, 197, 94, 0.3);
+    border: 1px solid rgba(34, 197, 94, 0.5);
+  }
+
+  .category-badge[data-category="artist"] {
+    background: rgba(147, 51, 234, 0.3);
+    border: 1px solid rgba(147, 51, 234, 0.5);
+  }
+
+  .news-date {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .card-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .large .card-title {
+    font-size: 1.8rem;
+    -webkit-line-clamp: 3;
+  }
+
+  .card-description {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+    margin: 0 0 1rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .large .card-description {
+    -webkit-line-clamp: 4;
+    font-size: 1rem;
+  }
+
+  .location-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: auto;
+  }
+
+  .news-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: linear-gradient(45deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .news-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+  }
+
+  .share-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .share-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+
+  .featured-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 3;
+    padding: 0.25rem 0.75rem;
+    background: linear-gradient(45deg, #f59e0b, #f97316);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .load-more-section {
+    text-align: center;
+    margin-top: 3rem;
+  }
+
+  .load-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    backdrop-filter: blur(20px);
+  }
+
+  .load-more-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .news-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .news-card.large {
+      grid-column: span 1;
+      grid-row: span 2;
+    }
+
+    .news-title {
+      font-size: 2rem;
+    }
+
+    .card-content {
+      padding: 1.25rem;
+    }
+  }
+
+  /* Animaciones */
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .featured {
+    animation: pulse 2s infinite;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const newsGrid = document.getElementById('newsGrid');
+    
+    // Simular carga de más noticias
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', function() {
+        // Aquí podrías hacer una llamada AJAX para cargar más noticias
+        const button = this;
+        const originalText = button.innerHTML;
+        
+        // Loading state
+        button.innerHTML = `
+          <span>Loading...</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-spin">
+            <path d="M21 12a9 9 0 11-6.219-8.56"/>
+          </svg>
+        `;
+        
+        // Simular delay de carga
+        setTimeout(() => {
+          button.innerHTML = originalText;
+          // Aquí agregarías las nuevas noticias al grid
+        }, 1500);
+      });
+    }
+    
+    // Filtros por categoría (opcional)
+    const cards = document.querySelectorAll('.news-card');
+    
+    function filterByCategory(category) {
+      cards.forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+          card.style.display = 'block';
+          card.style.animation = 'slideInUp 0.6s ease forwards';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+    
+    // Intersecction Observer para animaciones
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    cards.forEach(card => {
+      observer.observe(card);
+    });
+    
+    // Lazy loading para imágenes
+    const images = document.querySelectorAll('.card-background img');
+    const imageObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+          }
+          imageObserver.unobserve(img);
+        }
+      });
+    });
+    
+    images.forEach(img => imageObserver.observe(img));
+  });
+</script>

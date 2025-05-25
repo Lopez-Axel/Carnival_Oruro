@@ -1,6 +1,105 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import LoginModal from '../components/LoginModal.astro';
+import Eventos from '../components/eventos.astro';
+import Noticias from '../components/noticias.astro';
+import Bandas from '../components/bandas.astro';
+
+// Datos de ejemplo para los componentes
+const eventos = [
+  {
+    id: "1",
+    title: "Velada del Carnaval",
+    subtitle: "Noche de gala y presentaciones especiales",
+    date: "10 de Febrero, 2025",
+    location: "Plaza 10 de Febrero - Oruro",
+    image: "/images/Ejemplo.jpeg",
+    category: "especial"
+  },
+  {
+    id: "2",
+    title: "Entrada del Carnaval",
+    subtitle: "Gran entrada folklórica",
+    date: "11 de Febrero, 2025",
+    location: "Avenida 6 de Agosto - Oruro",
+    image: "/images/Ejemplo.jpeg",
+    category: "principal"
+  },
+  {
+    id: "3",
+    title: "Corso del Carnaval",
+    subtitle: "Desfile de comparsas",
+    date: "12 de Febrero, 2025",
+    location: "Avenida Cívica - Oruro",
+    image: "/images/Ejemplo.jpeg",
+    category: "principal"
+  }
+];
+
+const noticias = [
+  {
+    id: "1",
+    title: "Preparativos para el Carnaval 2025",
+    description: "Las comparsas ultiman detalles para la gran entrada folklórica",
+    image: "/images/Ejemplo.jpeg",
+    category: "announcement",
+    date: "15 de Enero, 2025",
+    featured: true,
+    size: "large"
+  },
+  {
+    id: "2",
+    title: "Nuevas danzas se suman al Carnaval",
+    description: "Tres nuevas fraternidades confirmaron su participación",
+    image: "/images/Ejemplo.jpeg",
+    category: "event",
+    date: "10 de Enero, 2025",
+    size: "medium"
+  },
+  {
+    id: "3",
+    title: "Convocatoria para bandas musicales",
+    description: "Se abren las inscripciones para bandas que deseen participar",
+    image: "/images/Ejemplo.jpeg",
+    category: "artist",
+    date: "5 de Enero, 2025",
+    size: "small"
+  }
+];
+
+const bandas = [
+  {
+    id: "1",
+    title: "Banda Real Imperial",
+    artist: "Banda Real Imperial",
+    event: "Entrada del Carnaval",
+    date: "11 de Febrero, 2025",
+    image: "/images/Ejemplo.jpeg",
+    duration: "45 min",
+    category: "mainstage",
+    featured: true
+  },
+  {
+    id: "2",
+    title: "Banda Municipal de Oruro",
+    artist: "Banda Municipal",
+    event: "Velada del Carnaval",
+    date: "10 de Febrero, 2025",
+    image: "/images/Ejemplo.jpeg",
+    duration: "30 min",
+    category: "core"
+  },
+  {
+    id: "3",
+    title: "Banda 10 de Febrero",
+    artist: "Banda 10 de Febrero",
+    event: "Corso del Carnaval",
+    date: "12 de Febrero, 2025",
+    image: "/images/Ejemplo.jpeg",
+    duration: "40 min",
+    category: "scenario"
+  }
+];
 ---
 <MainLayout>
   <!-- Hero Section -->
@@ -31,105 +130,24 @@ import LoginModal from '../components/LoginModal.astro';
   </section>
 
   <!-- Sección de Eventos -->
-  <section class="py-20">
-    <div class="max-w-7xl mx-auto px-4">
-      <h2 class="section-title">
-        Próximos Festivales & Eventos
-      </h2>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Evento 1 -->
-        <div class="event-card fade-in">
-          <img 
-            src="/images/Ejemplo.jpeg" 
-            alt="Velada del Carnaval"
-          />
-          <div class="event-card-overlay"></div>
-          <div class="event-card-content">
-            <h3 class="event-title">Velada del Carnaval</h3>
-            <div class="event-info">
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.75 2.5A.75.75 0 017.5 1.75h9a.75.75 0 010 1.5h-9A.75.75 0 016.75 2.5zM4 5.75A.75.75 0 014.75 5h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 5.75zM4 9.75A.75.75 0 014.75 9h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 9.75zM4 13.75A.75.75 0 014.75 13h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 13.75zM4 17.75A.75.75 0 014.75 17h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 17.75zM4 21.75A.75.75 0 014.75 21h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 21.75z"/>
-                </svg>
-                <span>10 de Febrero, 2025</span>
-              </div>
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-                </svg>
-                <span>Plaza 10 de Febrero - Oruro</span>
-              </div>
-            </div>
-            <div class="event-buttons">
-              <a href="/eventos/velada" class="event-button">Info</a>
-              <a href="/boletos/velada" class="event-button">Tickets</a>
-            </div>
-          </div>
-        </div>
+  <Eventos 
+    title="Próximos Festivales & Eventos"
+    events={eventos}
+  />
 
-        <!-- Evento 2 -->
-        <div class="event-card fade-in">
-          <img 
-            src="/images/Ejemplo.jpeg" 
-            alt="Entrada del Carnaval"
-          />
-          <div class="event-card-overlay"></div>
-          <div class="event-card-content">
-            <h3 class="event-title">Entrada del Carnaval</h3>
-            <div class="event-info">
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.75 2.5A.75.75 0 017.5 1.75h9a.75.75 0 010 1.5h-9A.75.75 0 016.75 2.5zM4 5.75A.75.75 0 014.75 5h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 5.75zM4 9.75A.75.75 0 014.75 9h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 9.75zM4 13.75A.75.75 0 014.75 13h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 13.75zM4 17.75A.75.75 0 014.75 17h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 17.75zM4 21.75A.75.75 0 014.75 21h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 21.75z"/>
-                </svg>
-                <span>11 de Febrero, 2025</span>
-              </div>
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-                </svg>
-                <span>Avenida 6 de Agosto - Oruro</span>
-              </div>
-            </div>
-            <div class="event-buttons">
-              <a href="/eventos/entrada" class="event-button">Info</a>
-              <a href="/boletos/entrada" class="event-button">Tickets</a>
-            </div>
-          </div>
-        </div>
+  <!-- Sección de Noticias -->
+  <Noticias 
+    title="Noticias y Actualizaciones"
+    subtitle="Mantente informado sobre el Carnaval de Oruro"
+    news={noticias}
+  />
 
-        <!-- Evento 3 -->
-        <div class="event-card fade-in">
-          <img 
-            src="/images/Ejemplo.jpeg" 
-            alt="Corso del Carnaval"
-          />
-          <div class="event-card-overlay"></div>
-          <div class="event-card-content">
-            <h3 class="event-title">Corso del Carnaval</h3>
-            <div class="event-info">
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.75 2.5A.75.75 0 017.5 1.75h9a.75.75 0 010 1.5h-9A.75.75 0 016.75 2.5zM4 5.75A.75.75 0 014.75 5h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 5.75zM4 9.75A.75.75 0 014.75 9h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 9.75zM4 13.75A.75.75 0 014.75 13h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 13.75zM4 17.75A.75.75 0 014.75 17h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 17.75zM4 21.75A.75.75 0 014.75 21h14.5a.75.75 0 010 1.5H4.75A.75.75 0 014 21.75z"/>
-                </svg>
-                <span>12 de Febrero, 2025</span>
-              </div>
-              <div class="event-info-item">
-                <svg class="event-info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-                </svg>
-                <span>Avenida Cívica - Oruro</span>
-              </div>
-            </div>
-            <div class="event-buttons">
-              <a href="/eventos/corso" class="event-button">Info</a>
-              <a href="/boletos/corso" class="event-button">Tickets</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- Sección de Bandas -->
+  <Bandas 
+    title="Bandas Musicales"
+    subtitle="Descubre las bandas que participarán en el Carnaval"
+    sets={bandas}
+  />
 
   <!-- Login Modal -->
   <LoginModal />
