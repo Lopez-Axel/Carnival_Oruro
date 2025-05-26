@@ -142,6 +142,22 @@
       closeLoginModal();
     }
   });
+
+  window.openModalFestival = () => {
+    const modal = document.getElementById('modalFestival');
+    if (modal) {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  };
+
+  window.closeModalFestival = () => {
+    const modal = document.getElementById('modalFestival');
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+  };
 </script>
 
 <style>

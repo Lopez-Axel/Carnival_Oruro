@@ -1,0 +1,163 @@
+---
+interface Props {
+  isOpen: boolean;
+  title: string;
+  fields: {
+    name: string;
+    label: string;
+    type: 'text' | 'date' | 'time' | 'textarea' | 'file' | 'select';
+    placeholder?: string;
+    options?: { value: string; label: string }[];
+    required?: boolean;
+  }[];
+  submitText?: string;
+  cancelText?: string;
+  onSubmit: (data: any) => void;
+  onClose: () => void;
+}
+
+const { 
+  isOpen, 
+  title, 
+  fields, 
+  submitText = "Guardar", 
+  cancelText = "Cancelar",
+  onSubmit,
+  onClose 
+} = Astro.props;
+---
+
+<div class={`fixed inset-0 bg-black/50 ${isOpen ? 'flex' : 'hidden'} items-center justify-center z-50 transition-opacity duration-300`}>
+  <div class="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-2xl p-6 w-full max-w-2xl mx-4 transform transition-all duration-300 scale-100">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-2xl font-bold text-white">{title}</h3>
+      <button 
+        class="text-white hover:text-red-400 transition" 
+        onclick="closeModal()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <form id="modalForm" class="space-y-4">
+      {fields.map((field) => (
+        <div class={field.type === 'textarea' ? 'col-span-2' : ''}>
+          <label class="block text-white mb-2">
+            {field.label}
+            {field.required && <span class="text-red-400 ml-1">*</span>}
+          </label>
+          
+          {field.type === 'textarea' ? (
+            <textarea
+              name={field.name}
+              class="w-full bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white"
+              rows="3"
+              placeholder={field.placeholder}
+              required={field.required}
+            ></textarea>
+          ) : field.type === 'select' ? (
+            <select
+              name={field.name}
+              class="w-full bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white"
+              required={field.required}
+            >
+              <option value="">Seleccione una opción</option>
+              {field.options?.map(option => (
+                <option value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type={field.type}
+              name={field.name}
+              class="w-full bg-blue-900/40 border border-blue-300/30 rounded-lg px-4 py-2 text-white"
+              placeholder={field.placeholder}
+              required={field.required}
+            />
+          )}
+        </div>
+      ))}
+
+      <div class="flex justify-end gap-4 mt-6">
+        <button 
+          type="button" 
+          class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition"
+          onclick="closeModal()"
+        >
+          {cancelText}
+        </button>
+        <button 
+          type="submit" 
+          class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition"
+        >
+          {submitText}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .bg-gradient-to-br {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  input, textarea, select {
+    transition: all 0.3s ease;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
+
+  button {
+    transition: all 0.3s ease;
+  }
+
+  button:hover {
+    transform: translateY(-1px);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+</style>
+
+<script>
+  function closeModal() {
+    const modal = document.querySelector('.fixed');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+
+  // Manejar envío del formulario
+  document.getElementById('modalForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    // Llamar a la función onSubmit con los datos
+    window.dispatchEvent(new CustomEvent('modalSubmit', { detail: data }));
+    
+    // Cerrar el modal
+    closeModal();
+  });
+
+  // Cerrar modal al hacer clic fuera
+  document.querySelector('.fixed')?.addEventListener('click', (e) => {
+    if (e.target.classList.contains('fixed')) {
+      closeModal();
+    }
+  });
+</script> 

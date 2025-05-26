@@ -1,5 +1,5 @@
 ---
-import MainLayout from '../layouts/MainLayout.astro';
+import MainLayout from '../../layouts/MainLayout.astro';
 ---
 
 <MainLayout>
@@ -120,7 +120,7 @@ import MainLayout from '../layouts/MainLayout.astro';
     // Here you would typically make an API call to your authentication endpoint
     console.log('Login attempt:', { email: email.value });
     
-    // For now, just redirect to the dashboard
-    // window.location.href = '/dashboard';
+    // Redirect to the ControlVendedor page
+    window.location.href = '/Vendedor/ControlVendedor';
   });
 </script> 
