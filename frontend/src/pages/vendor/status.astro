@@ -1,0 +1,873 @@
+---
+// src/pages/vendor/status.astro
+import MainLayout from '../../layouts/MainLayout.astro';
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect('/signin');
+}
+
+const { profile } = user;
+// Solo clientes y vendedores pueden ver su estado
+if (profile?.role && !['cliente', 'vendedor'].includes(profile.role)) {
+  return Astro.redirect('/dashboard');
+}
+
+const userData = user.user;
+const userProfile = user.profile;
+---
+
+<MainLayout>
+  <br>
+  <br>
+  <br>
+  <div class="status-page">
+    <!-- Header -->
+    <header class="status-header">
+      <div class="header-content">
+        <h1>Estado de Solicitud de Vendedor</h1>
+        <p>Consulta el estado actual de tu solicitud</p>
+        <div class="breadcrumb">
+          <a href="/dashboard">Dashboard</a> > Estado de Solicitud
+        </div>
+      </div>
+    </header>
+
+    <!-- Status Container -->
+    <div class="status-container">
+      <div class="status-card" id="status-card">
+        <div class="loading-spinner" id="loading">
+          <div class="spinner"></div>
+          <p>Cargando estado de solicitud...</p>
+        </div>
+
+        <!-- No Application Found -->
+        <div class="no-application" id="no-application" style="display: none;">
+          <div class="no-app-icon">📝</div>
+          <h2>No hay solicitud</h2>
+          <p>No tienes ninguna solicitud de vendedor activa.</p>
+          <div class="no-app-actions">
+            <a href="/become-vendor" class="btn-primary">Crear Solicitud</a>
+            <a href="/dashboard" class="btn-secondary">Volver al Dashboard</a>
+          </div>
+        </div>
+
+        <!-- Application Status -->
+        <div class="application-status" id="application-status" style="display: none;">
+          <!-- Application Info -->
+          <div class="app-info">
+            <div class="app-header">
+              <h2 id="business-name">---</h2>
+              <div class="status-badge" id="status-badge">
+                <span id="status-text">---</span>
+              </div>
+            </div>
+            
+            <div class="app-details">
+              <div class="detail-item">
+                <span class="detail-label">ID de Solicitud:</span>
+                <span class="detail-value" id="application-id">---</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Fecha de Envío:</span>
+                <span class="detail-value" id="submitted-date">---</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Tipo de Negocio:</span>
+                <span class="detail-value" id="business-type">---</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Timeline -->
+          <div class="status-timeline">
+            <h3>Progreso de Solicitud</h3>
+            <div class="timeline">
+              <div class="timeline-item completed" id="step-submitted">
+                <div class="timeline-marker">✓</div>
+                <div class="timeline-content">
+                  <h4>Solicitud Enviada</h4>
+                  <p>Tu solicitud ha sido recibida correctamente</p>
+                </div>
+              </div>
+              
+              <div class="timeline-item" id="step-review">
+                <div class="timeline-marker">⏳</div>
+                <div class="timeline-content">
+                  <h4>En Revisión</h4>
+                  <p>Nuestro equipo está revisando tu solicitud</p>
+                </div>
+              </div>
+              
+              <div class="timeline-item" id="step-decision">
+                <div class="timeline-marker">⏳</div>
+                <div class="timeline-content">
+                  <h4>Decisión Final</h4>
+                  <p>Pronto recibirás una respuesta</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Documents Section -->
+          <div class="documents-section">
+            <h3>📄 Documentos Subidos</h3>
+            <div class="documents-list" id="documents-list">
+              <p class="loading-text">Cargando documentos...</p>
+            </div>
+          </div>
+
+          <!-- Rejection Reason (if rejected) -->
+          <div class="rejection-section" id="rejection-section" style="display: none;">
+            <h3>❌ Motivo del Rechazo</h3>
+            <div class="rejection-content">
+              <p id="rejection-reason">---</p>
+              <div class="rejection-actions">
+                <a href="/become-vendor" class="btn-primary">Nueva Solicitud</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Approval Section (if approved) -->
+          <div class="approval-section" id="approval-section" style="display: none;">
+            <h3>🎉 ¡Solicitud Aprobada!</h3>
+            <div class="approval-content">
+              <p>¡Felicitaciones! Tu solicitud ha sido aprobada. Ya puedes acceder al panel de vendedor.</p>
+              <div class="approval-actions">
+                <a href="/vendor" class="btn-primary">Ir al Panel de Vendedor</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="status-actions">
+            <a href="/dashboard" class="btn-secondary">Volver al Dashboard</a>
+            <button onclick="refreshStatus()" class="btn-outline">🔄 Actualizar Estado</button>
+          </div>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-state" id="error-state" style="display: none;">
+          <div class="error-icon">⚠️</div>
+          <h2>Error al cargar</h2>
+          <p id="error-message">Hubo un problema al cargar el estado de tu solicitud.</p>
+          <div class="error-actions">
+            <button onclick="loadApplicationStatus()" class="btn-primary">Reintentar</button>
+            <a href="/dashboard" class="btn-secondary">Volver al Dashboard</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script define:vars={{ 
+  userId: userData?.id, 
+  userEmail: userData?.email,
+  userName: userData?.user_metadata?.full_name || userData?.email?.split('@')[0]
+}}>
+  let applicationData = null;
+
+  // API Configuration
+  const API_BASE_URL = 'http://localhost:8000/api/vendor';
+
+  // Headers para autenticación
+  const getHeaders = () => ({
+    'X-User-Id': userId || 'test-user-id',
+    'X-User-Email': userEmail || 'test@example.com',
+    'X-Development-Mode': 'true'
+  });
+
+  // Load application status on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    loadApplicationStatus();
+  });
+
+  async function loadApplicationStatus() {
+    try {
+      showLoading();
+      
+      const response = await fetch(`${API_BASE_URL}/my-application`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      if (response.status === 404) {
+        showNoApplication();
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const application = await response.json();
+      applicationData = application;
+      
+      displayApplicationStatus(application);
+      
+    } catch (error) {
+      console.error('Error loading application status:', error);
+      showError(error.message);
+    }
+  }
+
+  function showLoading() {
+    hideAllSections();
+    document.getElementById('loading').style.display = 'block';
+  }
+
+  function showNoApplication() {
+    hideAllSections();
+    document.getElementById('no-application').style.display = 'block';
+  }
+
+  function showError(message) {
+    hideAllSections();
+    document.getElementById('error-state').style.display = 'block';
+    document.getElementById('error-message').textContent = message;
+  }
+
+  function hideAllSections() {
+    const sections = ['loading', 'no-application', 'application-status', 'error-state'];
+    sections.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) element.style.display = 'none';
+    });
+  }
+
+  function displayApplicationStatus(application) {
+    hideAllSections();
+    document.getElementById('application-status').style.display = 'block';
+
+    // Basic info
+    document.getElementById('business-name').textContent = application.business_name || 'Sin nombre';
+    document.getElementById('application-id').textContent = application.id || 'N/A';
+    document.getElementById('business-type').textContent = formatBusinessType(application.business_type);
+    
+    // Format date
+    if (application.submitted_at || application.created_at) {
+      const date = new Date(application.submitted_at || application.created_at);
+      document.getElementById('submitted-date').textContent = date.toLocaleDateString('es-ES');
+    }
+
+    // Status badge
+    const statusBadge = document.getElementById('status-badge');
+    const statusText = document.getElementById('status-text');
+    const status = application.application_status || application.status;
+    
+    statusText.textContent = formatStatus(status);
+    statusBadge.className = `status-badge status-${status}`;
+
+    // Update timeline
+    updateTimeline(status);
+
+    // Show documents
+    displayDocuments(application.documents || []);
+
+    // Handle rejection
+    if (status === 'rejected' && application.rejection_reason) {
+      document.getElementById('rejection-section').style.display = 'block';
+      document.getElementById('rejection-reason').textContent = application.rejection_reason;
+    }
+
+    // Handle approval
+    if (status === 'approved') {
+      document.getElementById('approval-section').style.display = 'block';
+    }
+  }
+
+  function updateTimeline(status) {
+    const steps = ['step-submitted', 'step-review', 'step-decision'];
+    
+    // Reset all steps
+    steps.forEach(stepId => {
+      const step = document.getElementById(stepId);
+      step.classList.remove('completed', 'active', 'failed');
+    });
+
+    // Update based on status
+    switch (status) {
+      case 'pending':
+        document.getElementById('step-submitted').classList.add('completed');
+        document.getElementById('step-review').classList.add('active');
+        break;
+      case 'under_review':
+        document.getElementById('step-submitted').classList.add('completed');
+        document.getElementById('step-review').classList.add('completed');
+        document.getElementById('step-decision').classList.add('active');
+        break;
+      case 'approved':
+        steps.forEach(stepId => {
+          document.getElementById(stepId).classList.add('completed');
+        });
+        break;
+      case 'rejected':
+        document.getElementById('step-submitted').classList.add('completed');
+        document.getElementById('step-review').classList.add('completed');
+        document.getElementById('step-decision').classList.add('failed');
+        break;
+    }
+  }
+
+  function displayDocuments(documents) {
+    const documentsList = document.getElementById('documents-list');
+    
+    if (!documents || documents.length === 0) {
+      documentsList.innerHTML = '<p class="no-documents">No hay documentos subidos</p>';
+      return;
+    }
+
+    const documentsHtml = documents.map(doc => `
+      <div class="document-item">
+        <div class="doc-info">
+          <span class="doc-icon">📄</span>
+          <div>
+            <div class="doc-name">${formatDocumentType(doc.document_type)}</div>
+            <div class="doc-date">${new Date(doc.uploaded_at).toLocaleDateString('es-ES')}</div>
+          </div>
+        </div>
+        <div class="doc-status status-${doc.verification_status || 'pending'}">
+          ${formatVerificationStatus(doc.verification_status || 'pending')}
+        </div>
+      </div>
+    `).join('');
+
+    documentsList.innerHTML = documentsHtml;
+  }
+
+  function formatBusinessType(type) {
+    const types = {
+      'agencia_viajes': 'Agencia de Viajes',
+      'hotel': 'Hotel / Hospedaje',
+      'restaurante': 'Restaurante / Gastronomía',
+      'independiente': 'Vendedor Independiente',
+      'otro': 'Otro'
+    };
+    return types[type] || type;
+  }
+
+  function formatStatus(status) {
+    const statuses = {
+      'pending': 'Pendiente',
+      'under_review': 'En Revisión',
+      'approved': 'Aprobada',
+      'rejected': 'Rechazada'
+    };
+    return statuses[status] || status;
+  }
+
+  function formatDocumentType(type) {
+    const types = {
+      'cedula': 'Cédula de Identidad',
+      'nit': 'NIT',
+      'licencia_funcionamiento': 'Licencia de Funcionamiento'
+    };
+    return types[type] || type;
+  }
+
+  function formatVerificationStatus(status) {
+    const statuses = {
+      'pending': 'Pendiente',
+      'approved': 'Verificado',
+      'rejected': 'Rechazado'
+    };
+    return statuses[status] || status;
+  }
+
+  window.refreshStatus = function() {
+    loadApplicationStatus();
+  };
+</script>
+
+<style>
+  /* Colores del Carnaval */
+  :root {
+    --carnival-orange: #ff6b35;
+    --carnival-gold: #f7931e;
+    --carnival-yellow: #ffd700;
+    --carnival-red: #dc2626;
+    --carnival-green: #16a34a;
+    --carnival-blue: #2563eb;
+    --dark-bg: #1a1a2e;
+    --dark-card: rgba(255, 255, 255, 0.05);
+    --dark-border: rgba(255, 255, 255, 0.1);
+    --text-light: rgba(255, 255, 255, 0.9);
+    --text-muted: rgba(255, 255, 255, 0.7);
+  }
+
+  .status-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 50%, #0f1419 100%);
+    color: white;
+    padding: 20px;
+  }
+
+  /* Header */
+  .status-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .header-content h1 {
+    font-size: 2.5rem;
+    margin: 0 0 16px 0;
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold), var(--carnival-yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header-content p {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .breadcrumb {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb a {
+    color: var(--carnival-orange);
+    text-decoration: none;
+  }
+
+  /* Status Container */
+  .status-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .status-card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 20px;
+    padding: 40px;
+    backdrop-filter: blur(10px);
+  }
+
+  /* Loading */
+  .loading-spinner {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--dark-border);
+    border-top: 3px solid var(--carnival-orange);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* No Application */
+  .no-application {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .no-app-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+  }
+
+  .no-application h2 {
+    color: var(--text-light);
+    margin-bottom: 16px;
+  }
+
+  .no-application p {
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+
+  .no-app-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* Application Status */
+  .app-info {
+    margin-bottom: 40px;
+  }
+
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .app-header h2 {
+    color: var(--text-light);
+    margin: 0;
+  }
+
+  .status-badge {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .status-badge.status-pending {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+
+  .status-badge.status-under_review {
+    background: rgba(37, 99, 235, 0.2);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+  }
+
+  .status-badge.status-approved {
+    background: rgba(22, 163, 74, 0.2);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.3);
+  }
+
+  .status-badge.status-rejected {
+    background: rgba(220, 38, 38, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+  }
+
+  .app-details {
+    display: grid;
+    gap: 12px;
+  }
+
+  .detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--dark-border);
+  }
+
+  .detail-label {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .detail-value {
+    color: var(--text-light);
+    font-weight: 600;
+  }
+
+  /* Timeline */
+  .status-timeline {
+    margin-bottom: 40px;
+  }
+
+  .status-timeline h3 {
+    color: var(--text-light);
+    margin-bottom: 24px;
+  }
+
+  .timeline {
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--dark-border);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-left: 60px;
+    margin-bottom: 32px;
+  }
+
+  .timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--dark-card);
+    border: 2px solid var(--dark-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+
+  .timeline-item.completed .timeline-marker {
+    background: var(--carnival-green);
+    border-color: var(--carnival-green);
+    color: white;
+  }
+
+  .timeline-item.active .timeline-marker {
+    background: var(--carnival-orange);
+    border-color: var(--carnival-orange);
+    color: white;
+  }
+
+  .timeline-item.failed .timeline-marker {
+    background: var(--carnival-red);
+    border-color: var(--carnival-red);
+    color: white;
+  }
+
+  .timeline-content h4 {
+    color: var(--text-light);
+    margin: 0 0 8px 0;
+  }
+
+  .timeline-content p {
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* Documents */
+  .documents-section {
+    margin-bottom: 40px;
+  }
+
+  .documents-section h3 {
+    color: var(--text-light);
+    margin-bottom: 24px;
+  }
+
+  .documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .document-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+  }
+
+  .doc-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .doc-icon {
+    font-size: 1.5rem;
+  }
+
+  .doc-name {
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  .doc-date {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .doc-status {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .doc-status.status-pending {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+  }
+
+  .doc-status.status-approved {
+    background: rgba(22, 163, 74, 0.2);
+    color: #16a34a;
+  }
+
+  .doc-status.status-rejected {
+    background: rgba(220, 38, 38, 0.2);
+    color: #ef4444;
+  }
+
+  .no-documents {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px;
+    font-style: italic;
+  }
+
+  /* Rejection and Approval sections */
+  .rejection-section,
+  .approval-section {
+    margin-bottom: 40px;
+    padding: 24px;
+    border-radius: 12px;
+  }
+
+  .rejection-section {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+  }
+
+  .approval-section {
+    background: rgba(22, 163, 74, 0.1);
+    border: 1px solid rgba(22, 163, 74, 0.3);
+  }
+
+  .rejection-section h3 {
+    color: #ef4444;
+    margin-bottom: 16px;
+  }
+
+  .approval-section h3 {
+    color: #16a34a;
+    margin-bottom: 16px;
+  }
+
+  .rejection-content p,
+  .approval-content p {
+    color: var(--text-light);
+    margin-bottom: 20px;
+  }
+
+  /* Error State */
+  .error-state {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .error-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+  }
+
+  .error-state h2 {
+    color: var(--carnival-red);
+    margin-bottom: 16px;
+  }
+
+  .error-state p {
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+
+  /* Actions */
+  .status-actions,
+  .rejection-actions,
+  .approval-actions,
+  .error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* Buttons */
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    color: white;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--dark-border);
+  }
+
+  .btn-secondary:hover {
+    background: var(--dark-card);
+    color: var(--text-light);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--carnival-orange);
+    border: 1px solid var(--carnival-orange);
+  }
+
+  .btn-outline:hover {
+    background: var(--carnival-orange);
+    color: white;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .status-page {
+      padding: 15px;
+    }
+
+    .header-content h1 {
+      font-size: 2rem;
+    }
+
+    .status-card {
+      padding: 24px;
+    }
+
+    .app-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .detail-item {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .document-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .status-actions,
+    .rejection-actions,
+    .approval-actions,
+    .error-actions,
+    .no-app-actions {
+      flex-direction: column;
+    }
+  }
+</style>

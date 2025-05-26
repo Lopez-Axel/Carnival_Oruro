@@ -1,5 +1,5 @@
 ---
-// src/pages/dashboard.astro - Versión simple con colores del carnaval
+// src/pages/dashboard.astro - Versión actualizada con sistema de vendedores
 import MainLayout from '../layouts/MainLayout.astro';
 
 const user = Astro.locals.user;
@@ -14,9 +14,17 @@ const fallbackName = userData?.user_metadata?.full_name || userData?.user_metada
 const fallbackEmail = userData?.email;
 const fallbackRole = profile?.role || 'cliente';
 const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadata?.picture;
+
+// Check if user has a pending vendor application
+let hasPendingApplication = false;
+// This would typically be fetched from the API
+// hasPendingApplication = await checkPendingApplication(userData.id);
 ---
 
 <MainLayout>
+  <br>
+  <br>
+  <br>
   <div class="dashboard">
     <!-- Header -->
     <header class="dashboard-header">
@@ -32,7 +40,7 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
             )}
           </div>
           <div class="user-details">
-            <h1>¡Bienvenido al Carnaval! 🎭</h1>
+            <h1>¡Bienvenido al Carnaval!</h1>
             <p class="name">{profile?.full_name || fallbackName}</p>
             <span class="role role-{fallbackRole}">{fallbackRole.toUpperCase()}</span>
           </div>
@@ -41,12 +49,29 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
       </div>
     </header>
 
+    <!-- Role-specific notifications -->
+    {fallbackRole === 'cliente' && (
+      <div class="notification-banner client-banner">
+        <div class="banner-content">
+          <div class="banner-icon">💰</div>
+          <div class="banner-text">
+            <h3>¿Quieres generar ingresos extra?</h3>
+            <p>Conviértete en vendedor autorizado y obtén comisiones por cada venta</p>
+          </div>
+          <a href="/become-vendor" class="banner-btn">
+            🚀 Solicitar ser Vendedor
+          </a>
+        </div>
+      </div>
+    )}
+
     <!-- Debug (solo desarrollo) -->
     {import.meta.env.DEV && (
       <div class="debug-info">
         <h3>🐛 Info de Debug</h3>
         <p>Email: {fallbackEmail}</p>
         <p>Perfil: {profile ? 'Encontrado' : 'No encontrado'}</p>
+        <p>Rol: {fallbackRole}</p>
         {!profile && (
           <button onclick="createProfile()" class="create-profile">
             Crear Perfil
@@ -57,6 +82,7 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
 
     <!-- Cards principales -->
     <div class="cards-grid">
+      <!-- Cards básicos para todos -->
       <div class="card">
         <div class="card-icon">🎫</div>
         <h3>Mis Tickets</h3>
@@ -84,44 +110,176 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
         <p>Configurar cuenta</p>
         <a href="/profile" class="card-btn">Editar</a>
       </div>
+
+      <!-- Cards específicos por rol -->
+      {fallbackRole === 'cliente' && (
+        <>
+          <div class="card vendor-application-card">
+            <div class="card-icon">💼</div>
+            <h3>Ser Vendedor</h3>
+            <p>Genera ingresos vendiendo entradas</p>
+            <div class="card-actions">
+              <a href="/become-vendor" class="card-btn">
+                📝 Solicitar
+              </a>
+              <a href="/vendor/status" class="card-btn-secondary">
+                👁️ Ver Estado
+              </a>
+            </div>
+          </div>
+
+          <div class="card info-card">
+            <div class="card-icon">ℹ️</div>
+            <h3>Centro de Ayuda</h3>
+            <p>Soporte y preguntas frecuentes</p>
+            <a href="/help" class="card-btn">Ayuda</a>
+          </div>
+        </>
+      )}
+
+      {fallbackRole === 'vendedor' && (
+        <>
+          <div class="card vendor-dashboard-card">
+            <div class="card-icon">📊</div>
+            <h3>Panel de Vendedor</h3>
+            <p>Gestiona tus ventas y comisiones</p>
+            <a href="/vendor/dashboard" class="card-btn">Ir al Panel</a>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">💰</div>
+            <h3>Vender Entradas</h3>
+            <p>Comienza a generar ingresos</p>
+            <a href="/vendor/sell" class="card-btn">Vender Ahora</a>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">📈</div>
+            <h3>Mis Ventas</h3>
+            <p>Historial y estadísticas</p>
+            <a href="/vendor/sales" class="card-btn">Ver Ventas</a>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">💳</div>
+            <h3>Comisiones</h3>
+            <p>Ganancias y pagos</p>
+            <a href="/vendor/earnings" class="card-btn">Ver Ganancias</a>
+          </div>
+        </>
+      )}
+
+      {fallbackRole === 'administrador' && (
+        <>
+          <div class="card admin-card">
+            <div class="card-icon">👨‍💼</div>
+            <h3>Solicitudes de Vendedor</h3>
+            <p>Revisar y aprobar solicitudes</p>
+            <div class="card-badge" id="pending-badge">0 pendientes</div>
+            <a href="/admin/vendor-applications" class="card-btn">Gestionar</a>
+          </div>
+
+          <div class="card admin-card">
+            <div class="card-icon">👥</div>
+            <h3>Gestión de Usuarios</h3>
+            <p>Administrar cuentas de usuario</p>
+            <a href="/admin/users" class="card-btn">Usuarios</a>
+          </div>
+
+          <div class="card admin-card">
+            <div class="card-icon">📊</div>
+            <h3>Reportes</h3>
+            <p>Estadísticas y análisis</p>
+            <a href="/admin/reports" class="card-btn">Ver Reportes</a>
+          </div>
+
+          <div class="card admin-card">
+            <div class="card-icon">⚙️</div>
+            <h3>Configuración</h3>
+            <p>Ajustes del sistema</p>
+            <a href="/admin/settings" class="card-btn">Configurar</a>
+          </div>
+        </>
+      )}
     </div>
 
-    <!-- Sección por rol -->
-    {(profile?.role === 'vendedor' || profile?.role === 'administrador') && (
-      <div class="role-section">
-        <h2>Panel de {profile.role === 'administrador' ? 'Administración' : 'Vendedor'}</h2>
-        <div class="role-cards">
-          {profile.role === 'administrador' && (
+    <!-- Quick Stats Section -->
+    {(fallbackRole === 'vendedor' || fallbackRole === 'administrador') && (
+      <div class="quick-stats-section">
+        <h2>📊 Estadísticas Rápidas</h2>
+        <div class="stats-grid" id="quick-stats">
+          {fallbackRole === 'vendedor' && (
             <>
-              <div class="role-card">
-                <span class="role-icon">👥</span>
-                <h4>Usuarios</h4>
-                <a href="/admin/users">Gestionar</a>
+              <div class="stat-card">
+                <div class="stat-icon">🎫</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="vendor-sales">0</div>
+                  <div class="stat-label">Entradas Vendidas</div>
+                </div>
               </div>
-              <div class="role-card">
-                <span class="role-icon">📊</span>
-                <h4>Reportes</h4>
-                <a href="/admin/reports">Ver</a>
+              <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="vendor-earnings">Bs. 0</div>
+                  <div class="stat-label">Comisiones Ganadas</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="vendor-rank">#-</div>
+                  <div class="stat-label">Ranking del Mes</div>
+                </div>
               </div>
             </>
           )}
-          {(profile?.role === 'vendedor' || profile?.role === 'administrador') && (
+          
+          {fallbackRole === 'administrador' && (
             <>
-              <div class="role-card">
-                <span class="role-icon">💰</span>
-                <h4>Vender</h4>
-                <a href="/vendedor/sell">Vender</a>
+              <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="total-users">0</div>
+                  <div class="stat-label">Usuarios Totales</div>
+                </div>
               </div>
-              <div class="role-card">
-                <span class="role-icon">📋</span>
-                <h4>Mis Ventas</h4>
-                <a href="/vendedor/sales">Ver</a>
+              <div class="stat-card">
+                <div class="stat-icon">💼</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="active-vendors">0</div>
+                  <div class="stat-label">Vendedores Activos</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">🎫</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="total-sales">0</div>
+                  <div class="stat-label">Ventas Totales</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="pending-applications">0</div>
+                  <div class="stat-label">Solicitudes Pendientes</div>
+                </div>
               </div>
             </>
           )}
         </div>
       </div>
     )}
+
+    <!-- Recent Activity -->
+    <div class="recent-activity-section">
+      <h2>🕐 Actividad Reciente</h2>
+      <div class="activity-container" id="recent-activity">
+        <div class="activity-loading">
+          <div class="activity-spinner"></div>
+          <p>Cargando actividad reciente...</p>
+        </div>
+      </div>
+    </div>
 
     <!-- Información de cuenta -->
     <div class="account-info">
@@ -141,12 +299,24 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
             {profile?.is_active ? 'Activo' : 'Inactivo'}
           </span>
         </div>
+        {profile?.role === 'vendedor' && (
+          <div class="info-item">
+            <span>Comisión:</span>
+            <span class="commission-rate">10%</span>
+          </div>
+        )}
       </div>
     </div>
   </div>
 </MainLayout>
 
-<script define:vars={{ userId: userData?.id, userEmail: fallbackEmail, userName: fallbackName }}>
+<script define:vars={{ 
+  userId: userData?.id, 
+  userEmail: fallbackEmail, 
+  userName: fallbackName,
+  userRole: fallbackRole
+}}>
+  // Create profile function
   window.createProfile = async function() {
     try {
       const response = await fetch('/api/auth/create-profile', {
@@ -169,6 +339,137 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
       alert('Error inesperado');
     }
   };
+
+  // Load dashboard data based on role
+  async function loadDashboardData() {
+    try {
+      if (userRole === 'administrador') {
+        await loadAdminStats();
+      } else if (userRole === 'vendedor') {
+        await loadVendorStats();
+      }
+      
+      await loadRecentActivity();
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    }
+  }
+
+  async function loadAdminStats() {
+    try {
+      // Load admin statistics
+      // This would be replaced with actual API calls
+      const mockStats = {
+        totalUsers: 1250,
+        activeVendors: 45,
+        totalSales: 8920,
+        pendingApplications: 12
+      };
+
+      document.getElementById('total-users').textContent = mockStats.totalUsers.toLocaleString();
+      document.getElementById('active-vendors').textContent = mockStats.activeVendors;
+      document.getElementById('total-sales').textContent = mockStats.totalSales.toLocaleString();
+      document.getElementById('pending-applications').textContent = mockStats.pendingApplications;
+      
+      // Update the pending badge
+      const pendingBadge = document.getElementById('pending-badge');
+      if (pendingBadge) {
+        pendingBadge.textContent = `${mockStats.pendingApplications} pendientes`;
+        if (mockStats.pendingApplications > 0) {
+          pendingBadge.classList.add('has-pending');
+        }
+      }
+
+    } catch (error) {
+      console.error('Error loading admin stats:', error);
+    }
+  }
+
+  async function loadVendorStats() {
+    try {
+      // Load vendor statistics
+      // This would be replaced with actual API calls
+      const mockStats = {
+        sales: 156,
+        earnings: 780.50,
+        rank: 8
+      };
+
+      document.getElementById('vendor-sales').textContent = mockStats.sales;
+      document.getElementById('vendor-earnings').textContent = `Bs. ${mockStats.earnings.toFixed(2)}`;
+      document.getElementById('vendor-rank').textContent = `#${mockStats.rank}`;
+
+    } catch (error) {
+      console.error('Error loading vendor stats:', error);
+    }
+  }
+
+  async function loadRecentActivity() {
+    const activityContainer = document.getElementById('recent-activity');
+    
+    try {
+      // Simulate loading time
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Mock recent activity data
+      const activities = [
+        {
+          type: userRole === 'cliente' ? 'purchase' : userRole === 'vendedor' ? 'sale' : 'approval',
+          title: userRole === 'cliente' ? 'Entrada comprada' : userRole === 'vendedor' ? 'Venta realizada' : 'Solicitud aprobada',
+          description: userRole === 'cliente' ? 'Entrada VIP para el 15 de Febrero' : userRole === 'vendedor' ? '2 entradas generales vendidas' : 'Vendedor María García aprobado',
+          time: '2 horas',
+          icon: userRole === 'cliente' ? '🎫' : userRole === 'vendedor' ? '💰' : '✅'
+        },
+        {
+          type: 'update',
+          title: 'Perfil actualizado',
+          description: 'Información de contacto modificada',
+          time: '1 día',
+          icon: '⚙️'
+        },
+        {
+          type: userRole === 'administrador' ? 'system' : 'notification',
+          title: userRole === 'administrador' ? 'Sistema actualizado' : 'Nueva función disponible',
+          description: userRole === 'administrador' ? 'Actualización de seguridad aplicada' : 'Panel de vendedor mejorado',
+          time: '3 días',
+          icon: userRole === 'administrador' ? '🔧' : '🆕'
+        }
+      ];
+
+      activityContainer.innerHTML = `
+        <div class="activity-list">
+          ${activities.map(activity => `
+            <div class="activity-item">
+              <div class="activity-icon">${activity.icon}</div>
+              <div class="activity-content">
+                <div class="activity-title">${activity.title}</div>
+                <div class="activity-description">${activity.description}</div>
+              </div>
+              <div class="activity-time">hace ${activity.time}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="activity-footer">
+          <a href="/activity" class="view-all-btn">Ver toda la actividad →</a>
+        </div>
+      `;
+
+    } catch (error) {
+      console.error('Error loading recent activity:', error);
+      activityContainer.innerHTML = `
+        <div class="activity-error">
+          <p>Error al cargar la actividad reciente</p>
+          <button onclick="loadRecentActivity()" class="retry-btn">Reintentar</button>
+        </div>
+      `;
+    }
+  }
+
+  // Load data when page loads
+  document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+  // Auto-refresh stats every 5 minutes
+  setInterval(loadDashboardData, 5 * 60 * 1000);
 </script>
 
 <style>
@@ -192,7 +493,7 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
     padding: 20px;
   }
 
-  /* Header */
+  /* Header (existing styles remain the same) */
   .dashboard-header {
     background: var(--dark-card);
     border: 1px solid var(--dark-border);
@@ -280,7 +581,63 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
     background: rgba(220, 38, 38, 0.3);
   }
 
-  /* Debug */
+  /* Notification Banner */
+  .notification-banner {
+    max-width: 1200px;
+    margin: 0 auto 32px;
+    border-radius: 16px;
+    padding: 20px 24px;
+    backdrop-filter: blur(10px);
+  }
+
+  .client-banner {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(247, 147, 30, 0.1));
+    border: 1px solid rgba(255, 107, 53, 0.3);
+  }
+
+  .banner-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .banner-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+  }
+
+  .banner-text {
+    flex: 1;
+  }
+
+  .banner-text h3 {
+    margin: 0 0 8px 0;
+    color: var(--carnival-orange);
+    font-size: 1.2rem;
+  }
+
+  .banner-text p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .banner-btn {
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  }
+
+  .banner-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 107, 53, 0.4);
+  }
+
+  /* Debug (existing styles remain the same) */
   .debug-info {
     background: rgba(255, 193, 7, 0.1);
     border: 1px solid rgba(255, 193, 7, 0.3);
@@ -324,11 +681,33 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
     text-align: center;
     backdrop-filter: blur(10px);
     transition: all 0.3s;
+    position: relative;
   }
 
   .card:hover {
     transform: translateY(-4px);
     background: rgba(255, 255, 255, 0.08);
+  }
+
+  /* Special card styles */
+  .vendor-application-card {
+    border-color: rgba(255, 107, 53, 0.4);
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), rgba(247, 147, 30, 0.05));
+  }
+
+  .vendor-dashboard-card {
+    border-color: rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(59, 130, 246, 0.05));
+  }
+
+  .admin-card {
+    border-color: rgba(220, 38, 38, 0.4);
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.05), rgba(239, 68, 68, 0.05));
+  }
+
+  .info-card {
+    border-color: rgba(107, 114, 128, 0.4);
+    background: rgba(107, 114, 128, 0.05);
   }
 
   .card-icon {
@@ -356,6 +735,7 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s;
+    margin: 4px;
   }
 
   .card-btn:hover {
@@ -363,55 +743,224 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
     box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
   }
 
-  /* Role Section */
-  .role-section {
+  .card-btn-secondary {
+    display: inline-block;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s;
+    margin: 4px;
+  }
+
+  .card-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .card-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--carnival-gold);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .card-badge.has-pending {
+    background: var(--carnival-red);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Quick Stats Section */
+  .quick-stats-section {
     max-width: 1200px;
     margin: 0 auto 32px;
   }
 
-  .role-section h2 {
+  .quick-stats-section h2 {
     text-align: center;
     margin-bottom: 24px;
     color: white;
   }
 
-  .role-cards {
+  .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    gap: 20px;
   }
 
-  .role-card {
+  .stat-card {
     background: var(--dark-card);
     border: 1px solid var(--dark-border);
     border-radius: 12px;
     padding: 20px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    backdrop-filter: blur(10px);
     transition: all 0.3s;
   }
 
-  .role-card:hover {
+  .stat-card:hover {
     transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.08);
   }
 
-  .role-icon {
-    font-size: 32px;
-    display: block;
-    margin-bottom: 12px;
+  .stat-icon {
+    font-size: 2rem;
+    width: 50px;
+    text-align: center;
   }
 
-  .role-card h4 {
-    margin: 0 0 12px 0;
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--carnival-orange);
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Recent Activity Section */
+  .recent-activity-section {
+    max-width: 1200px;
+    margin: 0 auto 32px;
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    padding: 24px;
+    backdrop-filter: blur(10px);
+  }
+
+  .recent-activity-section h2 {
+    margin: 0 0 20px 0;
     color: white;
   }
 
-  .role-card a {
+  .activity-loading {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .activity-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--dark-border);
+    border-top: 3px solid var(--carnival-orange);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .activity-list {
+    display: grid;
+    gap: 16px;
+  }
+
+  .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid var(--dark-border);
+    transition: all 0.3s;
+  }
+
+  .activity-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .activity-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+  }
+
+  .activity-content {
+    flex: 1;
+  }
+
+  .activity-title {
+    font-weight: 600;
+    color: white;
+    margin-bottom: 4px;
+  }
+
+  .activity-description {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .activity-time {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .activity-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--dark-border);
+  }
+
+  .view-all-btn {
     color: var(--carnival-orange);
     text-decoration: none;
     font-weight: 500;
+    transition: all 0.3s;
   }
 
-  /* Account Info */
+  .view-all-btn:hover {
+    color: var(--carnival-gold);
+  }
+
+  .activity-error {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .retry-btn {
+    background: var(--carnival-orange);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+
+  /* Account Info (existing styles remain the same) */
   .account-info {
     max-width: 1200px;
     margin: 0 auto;
@@ -453,6 +1002,11 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
   .status-active { color: var(--carnival-green) !important; }
   .status-inactive { color: var(--carnival-red) !important; }
 
+  .commission-rate {
+    color: var(--carnival-gold) !important;
+    font-weight: 600;
+  }
+
   /* Responsive */
   @media (max-width: 768px) {
     .dashboard {
@@ -468,14 +1022,38 @@ const userAvatar = userData?.user_metadata?.avatar_url || userData?.user_metadat
       flex-direction: column;
       text-align: center;
     }
+
+    .banner-content {
+      flex-direction: column;
+      text-align: center;
+      gap: 16px;
+    }
     
     .cards-grid {
       grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
     }
     
     .info-item {
       flex-direction: column;
       gap: 4px;
+    }
+
+    .card-actions {
+      flex-direction: column;
+    }
+
+    .activity-item {
+      flex-direction: column;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .activity-time {
+      order: -1;
     }
   }
 </style>

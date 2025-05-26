@@ -1,0 +1,788 @@
+---
+// src/components/admin/AdminLayout.astro
+import MainLayout from '../../layouts/MainLayout.astro';
+import { 
+  Home, Users, FileText, Settings, 
+  BarChart3, Bell, LogOut, Menu,
+  ChevronDown
+} from 'lucide-astro';
+
+export interface Props {
+  title?: string;
+  currentPage?: string;
+}
+
+const { title = "Panel de Administración", currentPage = "" } = Astro.props;
+
+const user = Astro.locals.user;
+const userProfile = user?.profile;
+---
+
+<MainLayout title={title}>
+  <div class="admin-layout">
+    <!-- Admin Sidebar -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="admin-logo">
+          <span class="logo-icon">🎭</span>
+          <span class="logo-text">Admin Panel</span>
+        </div>
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+          <Menu size={20} />
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-section-title">Principal</span>
+          <ul class="nav-list">
+            <li>
+              <a 
+                href="/admin/dashboard" 
+                class={`nav-link ${currentPage === 'dashboard' ? 'active' : ''}`}
+              >
+                <Home size={18} />
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a 
+                href="/admin/vendor-applications" 
+                class={`nav-link ${currentPage === 'applications' ? 'active' : ''}`}
+              >
+                <Users size={18} />
+                <span>Solicitudes</span>
+                <span class="nav-badge" id="pending-badge">0</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="nav-section">
+          <span class="nav-section-title">Gestión</span>
+          <ul class="nav-list">
+            <li>
+              <a 
+                href="/admin/vendors" 
+                class={`nav-link ${currentPage === 'vendors' ? 'active' : ''}`}
+              >
+                <FileText size={18} />
+                <span>Vendedores</span>
+              </a>
+            </li>
+            <li>
+              <a 
+                href="/admin/reports" 
+                class={`nav-link ${currentPage === 'reports' ? 'active' : ''}`}
+              >
+                <BarChart3 size={18} />
+                <span>Reportes</span>
+              </a>
+            </li>
+            <li>
+              <a 
+                href="/admin/settings" 
+                class={`nav-link ${currentPage === 'settings' ? 'active' : ''}`}
+              >
+                <Settings size={18} />
+                <span>Configuración</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="admin-profile">
+          <div class="profile-info">
+            <div class="profile-name">{userProfile?.full_name || 'Admin'}</div>
+            <div class="profile-role">Administrador</div>
+          </div>
+          <div class="profile-dropdown">
+            <button class="profile-toggle" onclick="toggleProfileMenu()">
+              <ChevronDown size={16} />
+            </button>
+            <div class="profile-menu" id="profile-menu">
+              <a href="/profile" class="profile-menu-item">
+                <Settings size={16} />
+                Mi Perfil
+              </a>
+              <a href="/signout" class="profile-menu-item">
+                <LogOut size={16} />
+                Cerrar Sesión
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Admin Content -->
+    <main class="admin-content">
+      <!-- Top Bar -->
+      <header class="admin-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <Menu size={20} />
+          </button>
+          <h1 class="page-title">{title}</h1>
+        </div>
+        <div class="topbar-right">
+          <button class="notification-btn" onclick="toggleNotifications()">
+            <Bell size={18} />
+            <span class="notification-dot" id="notification-dot"></span>
+          </button>
+          <div class="topbar-user">
+            <span class="user-name">{userProfile?.full_name || 'Admin'}</span>
+            <div class="user-avatar">
+              {userProfile?.avatar_url ? (
+                <img src={userProfile.avatar_url} alt="Avatar" />
+              ) : (
+                <span>👨‍💼</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <slot />
+      </div>
+    </main>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notification-panel">
+      <div class="notification-header">
+        <h3>Notificaciones</h3>
+        <button onclick="closeNotifications()" class="close-btn">×</button>
+      </div>
+      <div class="notification-content">
+        <div class="notification-item">
+          <div class="notification-icon">📝</div>
+          <div class="notification-text">
+            <div class="notification-title">Nueva solicitud</div>
+            <div class="notification-desc">Juan Pérez envió una solicitud</div>
+            <div class="notification-time">hace 5 minutos</div>
+          </div>
+        </div>
+        <!-- More notifications would go here -->
+      </div>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" onclick="closeSidebar()"></div>
+  </div>
+</MainLayout>
+
+<script>
+  let sidebarOpen = false;
+  let profileMenuOpen = false;
+  let notificationsOpen = false;
+
+  // Sidebar functions
+  function toggleSidebar() {
+    sidebarOpen = !sidebarOpen;
+    const sidebar = document.getElementById('admin-sidebar');
+    const overlay = document.getElementById('mobile-overlay');
+    
+    if (sidebarOpen) {
+      sidebar?.classList.add('open');
+      overlay?.classList.add('visible');
+    } else {
+      sidebar?.classList.remove('open');
+      overlay?.classList.remove('visible');
+    }
+  }
+
+  function closeSidebar() {
+    sidebarOpen = false;
+    document.getElementById('admin-sidebar')?.classList.remove('open');
+    document.getElementById('mobile-overlay')?.classList.remove('visible');
+  }
+
+  // Profile menu functions
+  function toggleProfileMenu() {
+    profileMenuOpen = !profileMenuOpen;
+    const menu = document.getElementById('profile-menu');
+    
+    if (profileMenuOpen) {
+      menu?.classList.add('visible');
+    } else {
+      menu?.classList.remove('visible');
+    }
+  }
+
+  // Notification functions
+  function toggleNotifications() {
+    notificationsOpen = !notificationsOpen;
+    const panel = document.getElementById('notification-panel');
+    
+    if (notificationsOpen) {
+      panel?.classList.add('visible');
+    } else {
+      panel?.classList.remove('visible');
+    }
+  }
+
+  function closeNotifications() {
+    notificationsOpen = false;
+    document.getElementById('notification-panel')?.classList.remove('visible');
+  }
+
+  // Load pending applications count
+  async function loadPendingCount() {
+    try {
+      const response = await fetch('http://localhost:8000/api/vendor/admin/pending', {
+        headers: {
+          'X-Development-Mode': 'true'
+        }
+      });
+      
+      if (response.ok) {
+        const applications = await response.json();
+        const badge = document.getElementById('pending-badge');
+        const count = applications.length;
+        
+        if (badge) {
+          badge.textContent = count.toString();
+          badge.style.display = count > 0 ? 'inline' : 'none';
+        }
+        
+        // Show notification dot if there are pending applications
+        const notificationDot = document.getElementById('notification-dot');
+        if (notificationDot) {
+          notificationDot.style.display = count > 0 ? 'block' : 'none';
+        }
+      }
+    } catch (error) {
+      console.error('Error loading pending count:', error);
+    }
+  }
+
+  // Load on page load
+  document.addEventListener('DOMContentLoaded', loadPendingCount);
+
+  // Global functions
+  window.toggleSidebar = toggleSidebar;
+  window.closeSidebar = closeSidebar;
+  window.toggleProfileMenu = toggleProfileMenu;
+  window.toggleNotifications = toggleNotifications;
+  window.closeNotifications = closeNotifications;
+</script>
+
+<style>
+  /* Variables */
+  :root {
+    --carnival-orange: #ff6b35;
+    --carnival-gold: #f7931e;
+    --carnival-yellow: #ffd700;
+    --carnival-red: #dc2626;
+    --carnival-green: #16a34a;
+    --carnival-blue: #2563eb;
+    --dark-bg: #1a1a2e;
+    --dark-card: rgba(255, 255, 255, 0.05);
+    --dark-border: rgba(255, 255, 255, 0.1);
+    --text-light: rgba(255, 255, 255, 0.9);
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --sidebar-width: 280px;
+    --topbar-height: 70px;
+  }
+
+  .admin-layout {
+    display: flex;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 50%, #0f1419 100%);
+    color: white;
+  }
+
+  /* Sidebar */
+  .admin-sidebar {
+    width: var(--sidebar-width);
+    background: var(--dark-card);
+    border-right: 1px solid var(--dark-border);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 100;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--dark-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .admin-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    font-size: 1.5rem;
+  }
+
+  .logo-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .sidebar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+
+  .sidebar-toggle:hover {
+    background: var(--dark-card);
+    color: var(--text-light);
+  }
+
+  /* Navigation */
+  .sidebar-nav {
+    flex: 1;
+    padding: 20px 0;
+    overflow-y: auto;
+  }
+
+  .nav-section {
+    margin-bottom: 32px;
+  }
+
+  .nav-section-title {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 20px 12px 20px;
+  }
+
+  .nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.3s;
+    border-right: 3px solid transparent;
+    position: relative;
+  }
+
+  .nav-link:hover {
+    background: rgba(255, 107, 53, 0.1);
+    color: var(--text-light);
+  }
+
+  .nav-link.active {
+    background: rgba(255, 107, 53, 0.15);
+    color: var(--carnival-orange);
+    border-right-color: var(--carnival-orange);
+  }
+
+  .nav-badge {
+    background: var(--carnival-red);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: auto;
+    font-weight: 600;
+    min-width: 18px;
+    text-align: center;
+  }
+
+  /* Sidebar Footer */
+  .sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid var(--dark-border);
+  }
+
+  .admin-profile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .profile-info {
+    flex: 1;
+  }
+
+  .profile-name {
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .profile-role {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  .profile-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+
+  .profile-toggle:hover {
+    background: var(--dark-card);
+    color: var(--text-light);
+  }
+
+  .profile-menu {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background: var(--dark-bg);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    padding: 8px 0;
+    min-width: 150px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    z-index: 200;
+  }
+
+  .profile-menu.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .profile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+  }
+
+  .profile-menu-item:hover {
+    background: var(--dark-card);
+    color: var(--text-light);
+  }
+
+  /* Main Content */
+  .admin-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top Bar */
+  .admin-topbar {
+    height: var(--topbar-height);
+    background: var(--dark-card);
+    border-bottom: 1px solid var(--dark-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 90;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.3s;
+  }
+
+  .mobile-menu-btn:hover {
+    background: var(--dark-card);
+    color: var(--text-light);
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin: 0;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .notification-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .notification-btn:hover {
+    background: var(--dark-card);
+    color: var(--text-light);
+  }
+
+  .notification-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
+    background: var(--carnival-red);
+    border-radius: 50%;
+    display: none;
+  }
+
+  .topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user-name {
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--carnival-orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    overflow: hidden;
+  }
+
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Page Content */
+  .page-content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    height: calc(100vh - var(--topbar-height));
+  }
+
+  /* Notification Panel */
+  .notification-panel {
+    position: fixed;
+    top: var(--topbar-height);
+    right: 0;
+    width: 350px;
+    max-height: calc(100vh - var(--topbar-height));
+    background: var(--dark-bg);
+    border: 1px solid var(--dark-border);
+    border-top: none;
+    border-radius: 0 0 0 12px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(100%);
+    transition: all 0.3s;
+    z-index: 150;
+    overflow: hidden;
+  }
+
+  .notification-panel.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  .notification-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--dark-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .notification-header h3 {
+    margin: 0;
+    color: var(--text-light);
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+
+  .close-btn:hover {
+    background: var(--dark-card);
+    color: var(--text-light);
+  }
+
+  .notification-content {
+    padding: 12px 0;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .notification-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 20px;
+    transition: all 0.3s;
+  }
+
+  .notification-item:hover {
+    background: var(--dark-card);
+  }
+
+  .notification-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .notification-text {
+    flex: 1;
+  }
+
+  .notification-title {
+    color: var(--text-light);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .notification-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+
+  .notification-time {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  /* Mobile Overlay */
+  .mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+    z-index: 99;
+  }
+
+  .mobile-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .admin-sidebar {
+      transform: translateX(-100%);
+    }
+
+    .admin-sidebar.open {
+      transform: translateX(0);
+    }
+
+    .admin-content {
+      margin-left: 0;
+    }
+
+    .mobile-menu-btn {
+      display: block;
+    }
+
+    .sidebar-toggle {
+      display: block;
+    }
+
+    .user-name {
+      display: none;
+    }
+
+    .notification-panel {
+      width: calc(100vw - 40px);
+      right: 20px;
+    }
+
+    .page-content {
+      padding: 16px;
+    }
+
+    .page-title {
+      font-size: 1.2rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .topbar-right {
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      font-size: 1rem;
+    }
+  }
+</style>

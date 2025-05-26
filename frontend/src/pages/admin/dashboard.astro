@@ -1,0 +1,862 @@
+---
+// src/pages/admin/dashboard.astro
+import MainLayout from '../../layouts/MainLayout.astro';
+import { 
+  Users, FileText, CheckCircle, XCircle, 
+  TrendingUp, Calendar, Building, Mail,
+  Clock, AlertCircle, Activity, BarChart3
+} from 'lucide-astro';
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect('/signin');
+}
+
+// Verificar que sea administrador
+const { profile } = user;
+if (profile?.role !== 'administrador' && profile?.role !== 'admin') {
+  return Astro.redirect('/dashboard');
+}
+
+const userData = user.user;
+const userProfile = user.profile;
+---
+
+<MainLayout>
+  <br>
+  <br>
+  <br>
+  <div class="admin-dashboard">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>Panel de Administración</h1>
+          <p>Gestión de solicitudes de vendedores</p>
+        </div>
+        <div class="header-right">
+          <div class="admin-info">
+            <span class="admin-name">{userProfile?.full_name || 'Administrador'}</span>
+            <span class="admin-role">Administrador</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <a href="/admin/vendor-applications" class="quick-action primary">
+        <Users size={20} />
+        <span>Ver Solicitudes</span>
+      </a>
+      <a href="/admin/vendor-applications?status=pending" class="quick-action warning">
+        <Clock size={20} />
+        <span>Pendientes</span>
+      </a>
+      <a href="/admin/reports" class="quick-action success">
+        <BarChart3 size={20} />
+        <span>Reportes</span>
+      </a>
+      <a href="/admin/settings" class="quick-action secondary">
+        <Activity size={20} />
+        <span>Configuración</span>
+      </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stats-card loading">
+        <div class="card-icon pending">
+          <Clock size={24} />
+        </div>
+        <div class="card-content">
+          <div class="card-number" id="pending-count">---</div>
+          <div class="card-label">Solicitudes Pendientes</div>
+          <div class="card-change">
+            <TrendingUp size={14} />
+            <span id="pending-change">+0%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-card loading">
+        <div class="card-icon approved">
+          <CheckCircle size={24} />
+        </div>
+        <div class="card-content">
+          <div class="card-number" id="approved-count">---</div>
+          <div class="card-label">Aprobadas</div>
+          <div class="card-change">
+            <TrendingUp size={14} />
+            <span id="approved-change">+0%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-card loading">
+        <div class="card-icon rejected">
+          <XCircle size={24} />
+        </div>
+        <div class="card-content">
+          <div class="card-number" id="rejected-count">---</div>
+          <div class="card-label">Rechazadas</div>
+          <div class="card-change">
+            <TrendingUp size={14} />
+            <span id="rejected-change">+0%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-card loading">
+        <div class="card-icon total">
+          <Users size={24} />
+        </div>
+        <div class="card-content">
+          <div class="card-number" id="total-vendors">---</div>
+          <div class="card-label">Vendedores Activos</div>
+          <div class="card-change">
+            <TrendingUp size={14} />
+            <span id="vendors-change">+0%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="dashboard-section">
+      <div class="section-header">
+        <h2>
+          <FileText size={20} />
+          Solicitudes Recientes
+        </h2>
+        <a href="/admin/vendor-applications" class="view-all-btn">
+          Ver todas →
+        </a>
+      </div>
+      
+      <div class="recent-applications" id="recent-applications">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando solicitudes recientes...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="dashboard-section">
+      <div class="section-header">
+        <h2>
+          <Activity size={20} />
+          Actividad Reciente
+        </h2>
+      </div>
+      
+      <div class="activity-feed" id="activity-feed">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando actividad...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script define:vars={{ 
+  userId: userData?.id, 
+  userEmail: userData?.email,
+  userName: userData?.user_metadata?.full_name || userData?.email?.split('@')[0]
+}}>
+  // API Configuration
+  const API_BASE_URL = 'http://localhost:8000/api/vendor';
+
+  // Headers para autenticación
+  const getHeaders = () => ({
+    'X-User-Id': userId || 'admin-user-id',
+    'X-User-Email': userEmail || 'admin@example.com',
+    'X-Development-Mode': 'true'
+  });
+
+  // Load dashboard data on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+  });
+
+  async function loadDashboardData() {
+    try {
+      await Promise.all([
+        loadStats(),
+        loadRecentApplications(),
+        loadActivityFeed()
+      ]);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      showError('Error al cargar los datos del dashboard');
+    }
+  }
+
+  async function loadStats() {
+    try {
+      // For now, we'll use the existing endpoint and calculate stats
+      const response = await fetch(`${API_BASE_URL}/admin/pending`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const applications = await response.json();
+      
+      // Calculate stats (this is simplified - in production you'd have dedicated endpoints)
+      const pending = applications.length;
+      const approved = 0; // Would come from a separate endpoint
+      const rejected = 0; // Would come from a separate endpoint
+      const totalVendors = 0; // Would come from vendor_settings table
+
+      // Update stats cards
+      updateStatsCard('pending-count', pending, '+12%');
+      updateStatsCard('approved-count', approved, '+8%');
+      updateStatsCard('rejected-count', rejected, '-5%');
+      updateStatsCard('total-vendors', totalVendors, '+15%');
+
+      // Remove loading states
+      document.querySelectorAll('.stats-card').forEach(card => {
+        card.classList.remove('loading');
+      });
+
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      showStatsError();
+    }
+  }
+
+  async function loadRecentApplications() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/pending`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const applications = await response.json();
+      
+      // Show only the 5 most recent
+      const recentApps = applications.slice(0, 5);
+      
+      displayRecentApplications(recentApps);
+
+    } catch (error) {
+      console.error('Error loading recent applications:', error);
+      showRecentAppsError();
+    }
+  }
+
+  async function loadActivityFeed() {
+    // Mock activity data for now
+    const mockActivity = [
+      {
+        type: 'application_submitted',
+        user: 'Juan Pérez',
+        business: 'Agencia Turismo La Paz',
+        time: '15 minutos',
+        icon: 'FileText'
+      },
+      {
+        type: 'application_approved',
+        user: 'María González',
+        business: 'Hotel Centro',
+        time: '2 horas',
+        icon: 'CheckCircle'
+      },
+      {
+        type: 'document_uploaded',
+        user: 'Carlos Mamani',
+        business: 'Restaurante Típico',
+        time: '4 horas',
+        icon: 'Upload'
+      }
+    ];
+
+    displayActivityFeed(mockActivity);
+  }
+
+  function updateStatsCard(elementId, value, change) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = value;
+    }
+
+    const changeElement = document.getElementById(elementId.replace('-count', '-change').replace('-vendors', '-change'));
+    if (changeElement) {
+      changeElement.textContent = change;
+    }
+  }
+
+  function displayRecentApplications(applications) {
+    const container = document.getElementById('recent-applications');
+    
+    if (applications.length === 0) {
+      container.innerHTML = '<div class="empty-state">📝 No hay solicitudes recientes</div>';
+      return;
+    }
+
+    const applicationsHtml = applications.map(app => `
+      <div class="application-card">
+        <div class="app-header">
+          <div class="app-info">
+            <h4>${app.business_name}</h4>
+            <p>${app.applicant_name} • ${app.applicant_email}</p>
+          </div>
+          <div class="app-status status-${app.application_status}">
+            ${formatStatus(app.application_status)}
+          </div>
+        </div>
+        <div class="app-details">
+          <span class="app-type">${formatBusinessType(app.business_type)}</span>
+          <span class="app-date">${formatDate(app.submitted_at)}</span>
+          <span class="app-docs">${app.documents_count} documentos</span>
+        </div>
+        <div class="app-actions">
+          <a href="/admin/application/${app.id}" class="btn-view">Ver Detalles</a>
+        </div>
+      </div>
+    `).join('');
+
+    container.innerHTML = applicationsHtml;
+  }
+
+  function displayActivityFeed(activities) {
+    const container = document.getElementById('activity-feed');
+    
+    const activitiesHtml = activities.map(activity => `
+      <div class="activity-item">
+        <div class="activity-icon ${activity.type}">
+          ${getActivityIcon(activity.type)}
+        </div>
+        <div class="activity-content">
+          <p class="activity-text">
+            <strong>${activity.user}</strong> ${getActivityText(activity.type)} 
+            <em>${activity.business}</em>
+          </p>
+          <span class="activity-time">hace ${activity.time}</span>
+        </div>
+      </div>
+    `).join('');
+
+    container.innerHTML = activitiesHtml;
+  }
+
+  function getActivityIcon(type) {
+    const icons = {
+      'application_submitted': '📝',
+      'application_approved': '✅',
+      'application_rejected': '❌',
+      'document_uploaded': '📎',
+      'vendor_activated': '🎉'
+    };
+    return icons[type] || '📋';
+  }
+
+  function getActivityText(type) {
+    const texts = {
+      'application_submitted': 'envió una solicitud para',
+      'application_approved': 'fue aprobado como vendedor para',
+      'application_rejected': 'fue rechazado para',
+      'document_uploaded': 'subió documentos para',
+      'vendor_activated': 'activó su cuenta de vendedor para'
+    };
+    return texts[type] || 'realizó una acción en';
+  }
+
+  function formatStatus(status) {
+    const statuses = {
+      'pending': 'Pendiente',
+      'under_review': 'En Revisión',
+      'approved': 'Aprobada',
+      'rejected': 'Rechazada'
+    };
+    return statuses[status] || status;
+  }
+
+  function formatBusinessType(type) {
+    const types = {
+      'agencia_viajes': 'Agencia de Viajes',
+      'hotel': 'Hotel',
+      'restaurante': 'Restaurante',
+      'independiente': 'Independiente',
+      'otro': 'Otro'
+    };
+    return types[type] || type;
+  }
+
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function showError(message) {
+    // You could implement a toast notification here
+    console.error(message);
+  }
+
+  function showStatsError() {
+    document.querySelectorAll('.stats-card').forEach(card => {
+      card.classList.remove('loading');
+      const numberElement = card.querySelector('.card-number');
+      if (numberElement) {
+        numberElement.textContent = 'Error';
+      }
+    });
+  }
+
+  function showRecentAppsError() {
+    const container = document.getElementById('recent-applications');
+    container.innerHTML = '<div class="error-state">❌ Error al cargar solicitudes</div>';
+  }
+</script>
+
+<style>
+  /* Variables de color */
+  :root {
+    --carnival-orange: #ff6b35;
+    --carnival-gold: #f7931e;
+    --carnival-yellow: #ffd700;
+    --carnival-red: #dc2626;
+    --carnival-green: #16a34a;
+    --carnival-blue: #2563eb;
+    --dark-bg: #1a1a2e;
+    --dark-card: rgba(255, 255, 255, 0.05);
+    --dark-border: rgba(255, 255, 255, 0.1);
+    --text-light: rgba(255, 255, 255, 0.9);
+    --text-muted: rgba(255, 255, 255, 0.7);
+  }
+
+  .admin-dashboard {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 50%, #0f1419 100%);
+    color: white;
+    padding: 20px;
+  }
+
+  /* Header */
+  .admin-header {
+    margin-bottom: 32px;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .header-left h1 {
+    font-size: 2.5rem;
+    margin: 0 0 8px 0;
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header-left p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  .admin-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .admin-name {
+    font-weight: 600;
+    color: var(--text-light);
+  }
+
+  .admin-role {
+    font-size: 0.9rem;
+    color: var(--carnival-orange);
+    background: rgba(255, 107, 53, 0.1);
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 107, 53, 0.3);
+  }
+
+  /* Quick Actions */
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .quick-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-light);
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+  }
+
+  .quick-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+
+  .quick-action.primary:hover {
+    border-color: var(--carnival-orange);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+  }
+
+  .quick-action.warning:hover {
+    border-color: var(--carnival-gold);
+    box-shadow: 0 8px 25px rgba(247, 147, 30, 0.3);
+  }
+
+  .quick-action.success:hover {
+    border-color: var(--carnival-green);
+    box-shadow: 0 8px 25px rgba(22, 163, 74, 0.3);
+  }
+
+  .quick-action.secondary:hover {
+    border-color: var(--carnival-blue);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .stats-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+  }
+
+  .stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .stats-card.loading {
+    opacity: 0.6;
+  }
+
+  .card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .card-icon.pending {
+    background: rgba(247, 147, 30, 0.2);
+    color: var(--carnival-gold);
+  }
+
+  .card-icon.approved {
+    background: rgba(22, 163, 74, 0.2);
+    color: var(--carnival-green);
+  }
+
+  .card-icon.rejected {
+    background: rgba(220, 38, 38, 0.2);
+    color: var(--carnival-red);
+  }
+
+  .card-icon.total {
+    background: rgba(37, 99, 235, 0.2);
+    color: var(--carnival-blue);
+  }
+
+  .card-content {
+    flex: 1;
+  }
+
+  .card-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-light);
+    margin-bottom: 4px;
+  }
+
+  .card-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .card-change {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: var(--carnival-green);
+  }
+
+  /* Dashboard Sections */
+  .dashboard-section {
+    margin-bottom: 40px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.5rem;
+    color: var(--text-light);
+    margin: 0;
+  }
+
+  .view-all-btn {
+    color: var(--carnival-orange);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+
+  .view-all-btn:hover {
+    color: var(--carnival-gold);
+  }
+
+  /* Recent Applications */
+  .recent-applications {
+    display: grid;
+    gap: 16px;
+  }
+
+  .application-card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s;
+  }
+
+  .application-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border-color: var(--carnival-orange);
+  }
+
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    gap: 16px;
+  }
+
+  .app-info h4 {
+    color: var(--text-light);
+    margin: 0 0 4px 0;
+    font-size: 1.1rem;
+  }
+
+  .app-info p {
+    color: var(--text-muted);
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .app-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .app-status.status-pending {
+    background: rgba(247, 147, 30, 0.2);
+    color: var(--carnival-gold);
+    border: 1px solid rgba(247, 147, 30, 0.3);
+  }
+
+  .app-details {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .app-details span {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .app-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+
+  .btn-view {
+    padding: 8px 16px;
+    background: var(--carnival-orange);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+
+  .btn-view:hover {
+    background: var(--carnival-gold);
+    transform: translateY(-2px);
+  }
+
+  /* Activity Feed */
+  .activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+  }
+
+  .activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    background: rgba(255, 107, 53, 0.1);
+  }
+
+  .activity-content {
+    flex: 1;
+  }
+
+  .activity-text {
+    color: var(--text-light);
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+  }
+
+  .activity-time {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* Loading and Empty States */
+  .loading-state,
+  .empty-state,
+  .error-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--dark-border);
+    border-top: 3px solid var(--carnival-orange);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .admin-dashboard {
+      padding: 15px;
+    }
+
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .admin-info {
+      align-items: flex-start;
+    }
+
+    .header-left h1 {
+      font-size: 2rem;
+    }
+
+    .quick-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .app-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .app-details {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+</style>

@@ -1,0 +1,1645 @@
+---
+// src/pages/admin/application/[id].astro
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { 
+  ArrowLeft, User, Building, Mail, Phone, 
+  Calendar, FileText, CheckCircle, XCircle, 
+  Download, Eye, Edit, Clock, MapPin,
+  DollarSign, TrendingUp, MessageSquare,
+  AlertTriangle, Info
+} from 'lucide-astro';
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect('/signin');
+}
+
+// Verificar que sea administrador
+const { profile } = user;
+if (profile?.role !== 'administrador' && profile?.role !== 'admin') {
+  return Astro.redirect('/dashboard');
+}
+
+// Get application ID from URL
+const { id } = Astro.params;
+if (!id) {
+  return Astro.redirect('/admin/vendor-applications');
+}
+
+const userData = user.user;
+const userProfile = user.profile;
+---
+
+<MainLayout>
+  <br>
+  <br>
+  <br>
+  <div class="application-details">
+    <!-- Header -->
+    <header class="details-header">
+      <div class="header-content">
+        <div class="header-left">
+          <a href="/admin/vendor-applications" class="back-btn">
+            <ArrowLeft size={20} />
+            Volver a Solicitudes
+          </a>
+          <h1 id="application-title">Cargando solicitud...</h1>
+          <div class="application-meta" id="application-meta">
+            <span class="meta-item">
+              <Calendar size={16} />
+              <span id="submission-date">---</span>
+            </span>
+            <span class="meta-item">
+              <User size={16} />
+              <span id="applicant-name">---</span>
+            </span>
+          </div>
+        </div>
+        <div class="header-status" id="header-status">
+          <!-- Status badge will be loaded here -->
+        </div>
+      </div>
+    </header>
+
+    <!-- Loading State -->
+    <div class="loading-container" id="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando detalles de la solicitud...</p>
+    </div>
+
+    <!-- Application Content -->
+    <div class="application-content" id="application-content" style="display: none;">
+      
+      <!-- Quick Actions -->
+      <div class="quick-actions" id="quick-actions">
+        <!-- Actions will be loaded based on status -->
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="content-grid">
+        
+        <!-- Left Column -->
+        <div class="left-column">
+          
+          <!-- Business Information -->
+          <div class="info-section">
+            <div class="section-header">
+              <h2>
+                <Building size={20} />
+                Información del Negocio
+              </h2>
+            </div>
+            <div class="section-content" id="business-info">
+              <!-- Content will be loaded here -->
+            </div>
+          </div>
+
+          <!-- Applicant Information -->
+          <div class="info-section">
+            <div class="section-header">
+              <h2>
+                <User size={20} />
+                Información del Solicitante
+              </h2>
+            </div>
+            <div class="section-content" id="applicant-info">
+              <!-- Content will be loaded here -->
+            </div>
+          </div>
+
+          <!-- Application Details -->
+          <div class="info-section">
+            <div class="section-header">
+              <h2>
+                <MessageSquare size={20} />
+                Detalles de la Solicitud
+              </h2>
+            </div>
+            <div class="section-content" id="application-details-content">
+              <!-- Content will be loaded here -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column -->
+        <div class="right-column">
+          
+          <!-- Documents Section -->
+          <div class="info-section">
+            <div class="section-header">
+              <h2>
+                <FileText size={20} />
+                Documentos Subidos
+              </h2>
+              <span class="doc-count" id="doc-count">0 documentos</span>
+            </div>
+            <div class="section-content" id="documents-section">
+              <!-- Documents will be loaded here -->
+            </div>
+          </div>
+
+          <!-- Admin Actions -->
+          <div class="info-section" id="admin-actions-section">
+            <div class="section-header">
+              <h2>
+                <Edit size={20} />
+                Acciones de Administrador
+              </h2>
+            </div>
+            <div class="section-content" id="admin-actions-content">
+              <!-- Admin actions will be loaded here -->
+            </div>
+          </div>
+
+          <!-- Application Timeline -->
+          <div class="info-section">
+            <div class="section-header">
+              <h2>
+                <Clock size={20} />
+                Historial
+              </h2>
+            </div>
+            <div class="section-content" id="timeline-content">
+              <!-- Timeline will be loaded here -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-container" id="error-container" style="display: none;">
+      <div class="error-content">
+        <AlertTriangle size={48} />
+        <h2>Error al cargar</h2>
+        <p id="error-message">No se pudo cargar la información de la solicitud.</p>
+        <div class="error-actions">
+          <button onclick="loadApplicationDetails()" class="btn-primary">Reintentar</button>
+          <a href="/admin/vendor-applications" class="btn-secondary">Volver a la Lista</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approval Modal -->
+    <div class="modal-overlay" id="approval-modal" style="display: none;">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>
+            <CheckCircle size={20} />
+            Aprobar Solicitud
+          </h3>
+          <button onclick="closeModal('approval-modal')" class="close-btn">×</button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que quieres aprobar esta solicitud?</p>
+          <div class="form-group">
+            <label for="commission-rate">Tasa de Comisión (%):</label>
+            <input type="number" id="commission-rate" value="10" min="1" max="50" step="0.1">
+            <span class="field-help">Porcentaje de comisión que recibirá el vendedor</span>
+          </div>
+          <div class="form-group">
+            <label for="approval-notes">Notas (opcional):</label>
+            <textarea id="approval-notes" placeholder="Comentarios adicionales..."></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button onclick="closeModal('approval-modal')" class="btn-secondary">Cancelar</button>
+          <button onclick="confirmApproval()" class="btn-success">
+            <CheckCircle size={16} />
+            Aprobar Solicitud
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div class="modal-overlay" id="rejection-modal" style="display: none;">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>
+            <XCircle size={20} />
+            Rechazar Solicitud
+          </h3>
+          <button onclick="closeModal('rejection-modal')" class="close-btn">×</button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que quieres rechazar esta solicitud?</p>
+          <div class="form-group">
+            <label for="rejection-reason">Motivo del Rechazo *:</label>
+            <textarea id="rejection-reason" placeholder="Explica el motivo del rechazo... (mínimo 10 caracteres)" required></textarea>
+            <span class="field-help">Este mensaje será enviado al solicitante</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button onclick="closeModal('rejection-modal')" class="btn-secondary">Cancelar</button>
+          <button onclick="confirmRejection()" class="btn-danger">
+            <XCircle size={16} />
+            Rechazar Solicitud
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast" style="display: none;">
+      <div class="toast-content">
+        <span id="toast-message"></span>
+      </div>
+    </div>
+
+  </div>
+</MainLayout>
+
+<script define:vars={{ 
+  applicationId: id,
+  userId: userData?.id, 
+  userEmail: userData?.email,
+  userName: userData?.user_metadata?.full_name || userData?.email?.split('@')[0]
+}}>
+  let applicationData = null;
+
+  // API Configuration
+  const API_BASE_URL = 'http://localhost:8000/api/vendor';
+
+  // Headers para autenticación
+  const getHeaders = () => ({
+    'X-User-Id': userId || 'admin-user-id',
+    'X-User-Email': userEmail || 'admin@example.com',
+    'X-Development-Mode': 'true'
+  });
+
+  // Load application details on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Loading application details for:', applicationId);
+    loadApplicationDetails();
+  });
+
+  async function loadApplicationDetails() {
+    try {
+      showLoading();
+      
+      console.log('📡 Fetching application details...');
+      const response = await fetch(`${API_BASE_URL}/admin/application/${applicationId}`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      console.log('📊 Response status:', response.status);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Solicitud no encontrada');
+        }
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const responseData = await response.json();
+      console.log('📦 Raw response data:', responseData);
+      
+      // Handle different response formats
+      if (responseData.success && responseData.data) {
+        applicationData = responseData.data;
+        console.log('✅ Using data from success response');
+      } else if (responseData.data) {
+        applicationData = responseData.data;
+        console.log('✅ Using data property');
+      } else {
+        applicationData = responseData;
+        console.log('✅ Using direct response');
+      }
+      
+      console.log('📋 Application data:', applicationData);
+      
+      if (!applicationData || !applicationData.business_name) {
+        throw new Error('Datos de aplicación inválidos o incompletos');
+      }
+      
+      displayApplicationDetails();
+      
+    } catch (error) {
+      console.error('❌ Error loading application details:', error);
+      showError(error.message);
+    }
+  }
+
+  function displayApplicationDetails() {
+    console.log('🎨 Displaying application details...');
+    
+    try {
+      // Update header
+      updateHeader();
+      
+      // Display business information
+      displayBusinessInfo();
+      
+      // Display applicant information
+      displayApplicantInfo();
+      
+      // Display application details
+      displayApplicationDetailsContent();
+      
+      // Display documents
+      displayDocuments();
+      
+      // Display admin actions
+      displayAdminActions();
+      
+      // Display timeline
+      displayTimeline();
+      
+      // Show content
+      showContent();
+      
+      console.log('✅ Application details displayed successfully');
+    } catch (error) {
+      console.error('❌ Error displaying details:', error);
+      showError('Error al mostrar los detalles: ' + error.message);
+    }
+  }
+
+  function updateHeader() {
+    const title = applicationData.business_name || 'Solicitud de Vendedor';
+    console.log('📝 Updating header with title:', title);
+    
+    document.getElementById('application-title').textContent = title;
+    
+    const submissionDate = applicationData.submitted_at ? formatDate(applicationData.submitted_at) : 'Fecha no disponible';
+    const applicantName = applicationData.applicant_name || 'Nombre no disponible';
+    
+    const metaContainer = document.getElementById('application-meta');
+    metaContainer.innerHTML = `
+      <span class="meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span>${submissionDate}</span>
+      </span>
+      <span class="meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span>${applicantName}</span>
+      </span>
+    `;
+
+    const statusContainer = document.getElementById('header-status');
+    statusContainer.innerHTML = `
+      <div class="status-badge status-${applicationData.application_status || 'unknown'}">
+        ${getStatusIcon(applicationData.application_status)}
+        ${formatStatus(applicationData.application_status)}
+      </div>
+    `;
+  }
+
+  function displayBusinessInfo() {
+    console.log('🏢 Displaying business info...');
+    
+    const container = document.getElementById('business-info');
+    container.innerHTML = `
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Nombre del Negocio:</label>
+          <value>${applicationData.business_name || 'No especificado'}</value>
+        </div>
+        <div class="info-item">
+          <label>Tipo de Negocio:</label>
+          <value>${formatBusinessType(applicationData.business_type)}</value>
+        </div>
+        ${applicationData.tax_id ? `
+          <div class="info-item">
+            <label>NIT:</label>
+            <value>${applicationData.tax_id}</value>
+          </div>
+        ` : ''}
+        ${applicationData.business_phone ? `
+          <div class="info-item">
+            <label>Teléfono del Negocio:</label>
+            <value>${applicationData.business_phone}</value>
+          </div>
+        ` : ''}
+        ${applicationData.business_email ? `
+          <div class="info-item">
+            <label>Email del Negocio:</label>
+            <value>${applicationData.business_email}</value>
+          </div>
+        ` : ''}
+        ${applicationData.business_address ? `
+          <div class="info-item full-width">
+            <label>Dirección:</label>
+            <value>${applicationData.business_address}</value>
+          </div>
+        ` : ''}
+        ${applicationData.years_of_experience !== null && applicationData.years_of_experience !== undefined ? `
+          <div class="info-item">
+            <label>Años de Experiencia:</label>
+            <value>${applicationData.years_of_experience} años</value>
+          </div>
+        ` : ''}
+        ${applicationData.expected_sales_volume ? `
+          <div class="info-item">
+            <label>Volumen de Ventas Esperado:</label>
+            <value>${applicationData.expected_sales_volume} entradas/mes</value>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  function displayApplicantInfo() {
+    console.log('👤 Displaying applicant info...');
+    
+    const container = document.getElementById('applicant-info');
+    container.innerHTML = `
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Nombre Completo:</label>
+          <value>${applicationData.applicant_name || 'No especificado'}</value>
+        </div>
+        <div class="info-item">
+          <label>Email:</label>
+          <value>${applicationData.applicant_email || 'No especificado'}</value>
+        </div>
+        ${applicationData.applicant_phone ? `
+          <div class="info-item">
+            <label>Teléfono:</label>
+            <value>${applicationData.applicant_phone}</value>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  function displayApplicationDetailsContent() {
+    console.log('📝 Displaying application details content...');
+    
+    const container = document.getElementById('application-details-content');
+    container.innerHTML = `
+      <div class="info-grid">
+        ${applicationData.description ? `
+          <div class="info-item full-width">
+            <label>Descripción del Negocio:</label>
+            <value class="text-content">${applicationData.description}</value>
+          </div>
+        ` : ''}
+        ${applicationData.why_want_to_sell ? `
+          <div class="info-item full-width">
+            <label>¿Por qué quiere ser vendedor?</label>
+            <value class="text-content">${applicationData.why_want_to_sell}</value>
+          </div>
+        ` : ''}
+        ${applicationData.rejection_reason ? `
+          <div class="info-item full-width rejection-reason">
+            <label>Motivo del Rechazo:</label>
+            <value class="text-content">${applicationData.rejection_reason}</value>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  function displayDocuments() {
+    console.log('📄 Displaying documents...');
+    
+    const container = document.getElementById('documents-section');
+    const documents = applicationData.documents || [];
+    
+    console.log(`📄 Found ${documents.length} documents:`, documents);
+    
+    document.getElementById('doc-count').textContent = `${documents.length} documento${documents.length !== 1 ? 's' : ''}`;
+    
+    if (documents.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <line x1="10" y1="9" x2="8" y2="9"/>
+          </svg>
+          <p>No hay documentos subidos</p>
+        </div>
+      `;
+      return;
+    }
+
+    const documentsHtml = documents.map(doc => `
+      <div class="document-item">
+        <div class="doc-info">
+          <div class="doc-icon">
+            ${getDocumentIcon(doc.document_type)}
+          </div>
+          <div class="doc-details">
+            <h4>${formatDocumentType(doc.document_type)}</h4>
+            <p>${doc.document_name || 'Documento'}</p>
+            <span class="doc-date">${doc.uploaded_at ? formatDate(doc.uploaded_at) : 'Fecha no disponible'}</span>
+          </div>
+        </div>
+        <div class="doc-status">
+          <span class="status-badge status-${doc.verification_status || 'pending'}">
+            ${formatVerificationStatus(doc.verification_status || 'pending')}
+          </span>
+        </div>
+        <div class="doc-actions">
+          ${doc.file_url ? `
+            <a href="${doc.file_url}" target="_blank" class="btn-view-doc" title="Ver documento">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </a>
+            <a href="${doc.file_url}" download class="btn-download-doc" title="Descargar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7,10 12,15 17,10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </a>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
+
+    container.innerHTML = documentsHtml;
+  }
+
+  function displayAdminActions() {
+    console.log('⚙️ Displaying admin actions...');
+    
+    const container = document.getElementById('admin-actions-content');
+    const status = applicationData.application_status;
+    
+    if (status === 'pending') {
+      container.innerHTML = `
+        <div class="action-buttons">
+          <button onclick="openApprovalModal()" class="btn-success full-width">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22,4 12,14.01 9,11.01"/>
+            </svg>
+            Aprobar Solicitud
+          </button>
+          <button onclick="openRejectionModal()" class="btn-danger full-width">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            Rechazar Solicitud
+          </button>
+        </div>
+        <div class="action-info">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <p>Una vez aprobada o rechazada, se enviará un email automático al solicitante.</p>
+        </div>
+      `;
+    } else if (status === 'approved') {
+      container.innerHTML = `
+        <div class="status-info approved">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22,4 12,14.01 9,11.01"/>
+          </svg>
+          <div>
+            <h4>Solicitud Aprobada</h4>
+            <p>El solicitante ya puede acceder como vendedor.</p>
+            ${applicationData.approved_at ? `
+              <span class="timestamp">Aprobada el ${formatDate(applicationData.approved_at)}</span>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    } else if (status === 'rejected') {
+      container.innerHTML = `
+        <div class="status-info rejected">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          <div>
+            <h4>Solicitud Rechazada</h4>
+            <p>Esta solicitud fue rechazada.</p>
+            ${applicationData.reviewed_at ? `
+              <span class="timestamp">Rechazada el ${formatDate(applicationData.reviewed_at)}</span>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function displayTimeline() {
+    console.log('⏰ Displaying timeline...');
+    
+    const container = document.getElementById('timeline-content');
+    
+    // Build timeline based on available data
+    const timeline = [];
+    
+    if (applicationData.submitted_at) {
+      timeline.push({
+        type: 'submitted',
+        title: 'Solicitud Enviada',
+        description: 'El solicitante envió su solicitud',
+        date: applicationData.submitted_at,
+        completed: true
+      });
+    }
+
+    if (applicationData.application_status === 'approved' && applicationData.approved_at) {
+      timeline.push({
+        type: 'approved',
+        title: 'Solicitud Aprobada',
+        description: 'Un administrador aprobó la solicitud',
+        date: applicationData.approved_at,
+        completed: true
+      });
+    } else if (applicationData.application_status === 'rejected' && applicationData.reviewed_at) {
+      timeline.push({
+        type: 'rejected',
+        title: 'Solicitud Rechazada',
+        description: 'Un administrador rechazó la solicitud',
+        date: applicationData.reviewed_at,
+        completed: true
+      });
+    }
+
+    if (timeline.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <p>No hay historial disponible</p>
+        </div>
+      `;
+      return;
+    }
+
+    const timelineHtml = timeline.map((item, index) => `
+      <div class="timeline-item ${item.completed ? 'completed' : ''}">
+        <div class="timeline-marker">
+          ${getTimelineIcon(item.type)}
+        </div>
+        <div class="timeline-content">
+          <h4>${item.title}</h4>
+          <p>${item.description}</p>
+          ${item.date ? `<span class="timeline-date">${formatDate(item.date)}</span>` : ''}
+        </div>
+      </div>
+    `).join('');
+
+    container.innerHTML = `<div class="timeline">${timelineHtml}</div>`;
+  }
+
+  // Modal functions
+  function openApprovalModal() {
+    document.getElementById('approval-modal').style.display = 'flex';
+  }
+
+  function openRejectionModal() {
+    document.getElementById('rejection-modal').style.display = 'flex';
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+  }
+
+  async function confirmApproval() {
+    const commissionRate = parseFloat(document.getElementById('commission-rate').value);
+    const notes = document.getElementById('approval-notes').value;
+    
+    if (commissionRate < 1 || commissionRate > 50) {
+      showToast('La tasa de comisión debe estar entre 1% y 50%', 'error');
+      return;
+    }
+
+    try {
+      showToast('Aprobando solicitud...', 'info');
+      
+      const response = await fetch(`${API_BASE_URL}/admin/approve/${applicationId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getHeaders()
+        },
+        body: JSON.stringify({ 
+          commission_rate: commissionRate,
+          notes: notes 
+        })
+      });
+
+      if (response.ok) {
+        closeModal('approval-modal');
+        showToast('Solicitud aprobada exitosamente', 'success');
+        await loadApplicationDetails();
+      } else {
+        const error = await response.json();
+        throw new Error(error.detail || 'Error al aprobar la solicitud');
+      }
+    } catch (error) {
+      console.error('Error approving application:', error);
+      showToast('Error al aprobar la solicitud: ' + error.message, 'error');
+    }
+  }
+
+  async function confirmRejection() {
+    const reason = document.getElementById('rejection-reason').value.trim();
+    
+    if (reason.length < 10) {
+      showToast('El motivo del rechazo debe tener al menos 10 caracteres', 'error');
+      return;
+    }
+
+    try {
+      showToast('Rechazando solicitud...', 'info');
+      
+      const response = await fetch(`${API_BASE_URL}/admin/reject/${applicationId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getHeaders()
+        },
+        body: JSON.stringify({ 
+          rejection_reason: reason 
+        })
+      });
+
+      if (response.ok) {
+        closeModal('rejection-modal');
+        showToast('Solicitud rechazada exitosamente', 'success');
+        await loadApplicationDetails();
+      } else {
+        const error = await response.json();
+        throw new Error(error.detail || 'Error al rechazar la solicitud');
+      }
+    } catch (error) {
+      console.error('Error rejecting application:', error);
+      showToast('Error al rechazar la solicitud: ' + error.message, 'error');
+    }
+  }
+
+  // Utility functions
+  function formatBusinessType(type) {
+    const types = {
+      'agencia_viajes': 'Agencia de Viajes',
+      'hotel': 'Hotel / Hospedaje',
+      'restaurante': 'Restaurante / Gastronomía',
+      'independiente': 'Vendedor Independiente',
+      'otro': 'Otro'
+    };
+    return types[type] || type || 'No especificado';
+  }
+
+  function formatStatus(status) {
+    const statuses = {
+      'pending': 'Pendiente',
+      'under_review': 'En Revisión',
+      'approved': 'Aprobada',
+      'rejected': 'Rechazada'
+    };
+    return statuses[status] || status || 'Estado desconocido';
+  }
+
+  function formatDocumentType(type) {
+    const types = {
+      'cedula': 'Cédula de Identidad',
+      'nit': 'NIT',
+      'licencia_funcionamiento': 'Licencia de Funcionamiento'
+    };
+    return types[type] || type || 'Documento';
+  }
+
+  function formatVerificationStatus(status) {
+    const statuses = {
+      'pending': 'Pendiente',
+      'approved': 'Verificado',
+      'rejected': 'Rechazado'
+    };
+    return statuses[status] || status || 'Pendiente';
+  }
+
+  function getStatusIcon(status) {
+    const icons = {
+      'pending': '⏳',
+      'under_review': '👀',
+      'approved': '✅',
+      'rejected': '❌'
+    };
+    return icons[status] || '📋';
+  }
+
+  function getDocumentIcon(type) {
+    const icons = {
+      'cedula': '🆔',
+      'nit': '🏢',
+      'licencia_funcionamiento': '📋'
+    };
+    return icons[type] || '📄';
+  }
+
+  function getTimelineIcon(type) {
+    const icons = {
+      'submitted': '📝',
+      'approved': '✅',
+      'rejected': '❌',
+      'under_review': '👀'
+    };
+    return icons[type] || '📋';
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return 'Fecha no disponible';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Fecha inválida';
+      
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Fecha inválida';
+    }
+  }
+
+  function showLoading() {
+    document.getElementById('loading-container').style.display = 'flex';
+    document.getElementById('application-content').style.display = 'none';
+    document.getElementById('error-container').style.display = 'none';
+  }
+
+  function showContent() {
+    document.getElementById('loading-container').style.display = 'none';
+    document.getElementById('application-content').style.display = 'block';
+    document.getElementById('error-container').style.display = 'none';
+  }
+
+  function showError(message) {
+    document.getElementById('loading-container').style.display = 'none';
+    document.getElementById('application-content').style.display = 'none';
+    document.getElementById('error-container').style.display = 'flex';
+    document.getElementById('error-message').textContent = message;
+  }
+
+  // Toast Notifications
+  function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    
+    toastMessage.textContent = message;
+    toast.className = `toast toast-${type}`;
+    toast.style.display = 'block';
+    
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 3000);
+  }
+
+  // Global functions
+  window.loadApplicationDetails = loadApplicationDetails;
+  window.openApprovalModal = openApprovalModal;
+  window.openRejectionModal = openRejectionModal;
+  window.closeModal = closeModal;
+  window.confirmApproval = confirmApproval;
+  window.confirmRejection = confirmRejection;
+</script>
+
+<style>
+  /* Variables */
+  :root {
+    --carnival-orange: #ff6b35;
+    --carnival-gold: #f7931e;
+    --carnival-yellow: #ffd700;
+    --carnival-red: #dc2626;
+    --carnival-green: #16a34a;
+    --carnival-blue: #2563eb;
+    --dark-bg: #1a1a2e;
+    --dark-card: rgba(255, 255, 255, 0.05);
+    --dark-border: rgba(255, 255, 255, 0.1);
+    --text-light: rgba(255, 255, 255, 0.9);
+    --text-muted: rgba(255, 255, 255, 0.7);
+  }
+
+  .application-details {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 50%, #0f1419 100%);
+    color: white;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .details-header {
+    margin-bottom: 32px;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--carnival-orange);
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 16px;
+    transition: color 0.3s;
+  }
+
+  .back-btn:hover {
+    color: var(--carnival-gold);
+  }
+
+  .header-left h1 {
+    font-size: 2.2rem;
+    margin: 0 0 12px 0;
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .application-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .header-status {
+    flex-shrink: 0;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .status-badge.status-pending {
+    background: rgba(247, 147, 30, 0.2);
+    color: var(--carnival-gold);
+    border: 1px solid rgba(247, 147, 30, 0.3);
+  }
+
+  .status-badge.status-approved {
+    background: rgba(22, 163, 74, 0.2);
+    color: var(--carnival-green);
+    border: 1px solid rgba(22, 163, 74, 0.3);
+  }
+
+  .status-badge.status-rejected {
+    background: rgba(220, 38, 38, 0.2);
+    color: var(--carnival-red);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+  }
+
+  .status-badge.status-under_review {
+    background: rgba(37, 99, 235, 0.2);
+    color: var(--carnival-blue);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+  }
+
+  /* Content Grid */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .left-column,
+  .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Info Sections */
+  .info-section {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--dark-border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-light);
+  }
+
+  .doc-count {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .section-content {
+    padding: 24px;
+  }
+
+  /* Info Grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .info-item.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .info-item label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .info-item value {
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  .info-item .text-content {
+    line-height: 1.5;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid var(--dark-border);
+  }
+
+  .info-item.rejection-reason {
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    padding: 16px;
+    background: rgba(220, 38, 38, 0.05);
+  }
+
+  .info-item.rejection-reason label {
+    color: var(--carnival-red);
+  }
+
+  /* Documents */
+  .document-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    transition: all 0.3s;
+  }
+
+  .document-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: var(--carnival-orange);
+  }
+
+  .doc-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .doc-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+  }
+
+  .doc-details h4 {
+    margin: 0 0 4px 0;
+    color: var(--text-light);
+    font-size: 1rem;
+  }
+
+  .doc-details p {
+    margin: 0 0 4px 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .doc-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .doc-status {
+    margin: 0 16px;
+  }
+
+  .doc-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-view-doc,
+  .btn-download-doc {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    background: rgba(37, 99, 235, 0.2);
+    color: var(--carnival-blue);
+  }
+
+  .btn-view-doc:hover,
+  .btn-download-doc:hover {
+    background: var(--carnival-blue);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  /* Admin Actions */
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .action-info {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(37, 99, 235, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    margin-top: 16px;
+  }
+
+  .action-info p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  .status-info {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    align-items: center;
+  }
+
+  .status-info.approved {
+    background: rgba(22, 163, 74, 0.1);
+    border: 1px solid rgba(22, 163, 74, 0.3);
+    color: var(--carnival-green);
+  }
+
+  .status-info.rejected {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    color: var(--carnival-red);
+  }
+
+  .status-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 1.1rem;
+  }
+
+  .status-info p {
+    margin: 0 0 8px 0;
+    color: var(--text-muted);
+  }
+
+  .timestamp {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--dark-border);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-left: 60px;
+    margin-bottom: 24px;
+  }
+
+  .timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--dark-card);
+    border: 2px solid var(--dark-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+
+  .timeline-item.completed .timeline-marker {
+    background: var(--carnival-green);
+    border-color: var(--carnival-green);
+    color: white;
+  }
+
+  .timeline-content h4 {
+    margin: 0 0 4px 0;
+    color: var(--text-light);
+  }
+
+  .timeline-content p {
+    margin: 0 0 8px 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .timeline-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  /* Buttons */
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-danger {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    color: white;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--dark-border);
+  }
+
+  .btn-secondary:hover {
+    background: var(--dark-card);
+    color: var(--text-light);
+  }
+
+  .btn-success {
+    background: var(--carnival-green);
+    color: white;
+  }
+
+  .btn-success:hover {
+    background: #0f9444;
+    transform: translateY(-2px);
+  }
+
+  .btn-danger {
+    background: var(--carnival-red);
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #b91c1c;
+    transform: translateY(-2px);
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  /* Toast Notifications */
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+  }
+
+  .toast-success {
+    background: rgba(22, 163, 74, 0.9);
+    color: white;
+    border: 1px solid var(--carnival-green);
+  }
+
+  .toast-error {
+    background: rgba(220, 38, 38, 0.9);
+    color: white;
+    border: 1px solid var(--carnival-red);
+  }
+
+  .toast-info {
+    background: rgba(37, 99, 235, 0.9);
+    color: white;
+    border: 1px solid var(--carnival-blue);
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal {
+    background: var(--dark-bg);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid var(--dark-border);
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-light);
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+
+  .close-btn:hover {
+    background: var(--dark-card);
+    color: var(--text-light);
+  }
+
+  .modal-body {
+    padding: 24px;
+  }
+
+  .modal-body p {
+    margin: 0 0 20px 0;
+    color: var(--text-light);
+    line-height: 1.5;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--carnival-orange);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .field-help {
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: block;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding: 24px;
+    border-top: 1px solid var(--dark-border);
+  }
+
+  /* Loading and Error States */
+  .loading-container,
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: var(--text-muted);
+  }
+
+  .error-container {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    margin-top: 20px;
+  }
+
+  .error-content {
+    text-align: center;
+  }
+
+  .error-content h2 {
+    color: var(--carnival-red);
+    margin: 16px 0 8px 0;
+  }
+
+  .error-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 24px;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--dark-border);
+    border-top: 3px solid var(--carnival-orange);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .empty-state p {
+    margin: 16px 0 0 0;
+    color: var(--text-muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .application-details {
+      padding: 15px;
+    }
+
+    .header-content {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .application-meta {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .content-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .document-item {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .doc-info {
+      justify-content: center;
+    }
+
+    .doc-actions {
+      justify-content: center;
+    }
+
+    .modal {
+      margin: 20px;
+      width: calc(100% - 40px);
+    }
+
+    .modal-actions {
+      flex-direction: column;
+    }
+  }
+</style>

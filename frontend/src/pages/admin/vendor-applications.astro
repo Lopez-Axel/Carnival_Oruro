@@ -1,0 +1,1224 @@
+---
+// src/pages/admin/vendor-applications.astro
+import MainLayout from '../../layouts/MainLayout.astro';
+import { 
+  Users, Search, Filter, FileText, CheckCircle, 
+  XCircle, Clock, Eye, Download, ChevronDown,
+  SortAsc, SortDesc, RefreshCw, Plus
+} from 'lucide-astro';
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect('/signin');
+}
+
+// Verificar que sea administrador
+const { profile } = user;
+if (profile?.role !== 'administrador' && profile?.role !== 'admin') {
+  return Astro.redirect('/dashboard');
+}
+
+const userData = user.user;
+const userProfile = user.profile;
+
+// Get filter from URL
+const url = new URL(Astro.request.url);
+const statusFilter = url.searchParams.get('status') || 'all';
+const searchQuery = url.searchParams.get('search') || '';
+---
+
+<MainLayout>
+  <br>
+  <br>
+  <br>
+  <div class="applications-page">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>
+            <Users size={32} />
+            Solicitudes de Vendedor
+          </h1>
+          <p>Gestiona todas las solicitudes para convertirse en vendedor</p>
+        </div>
+        <div class="header-actions">
+          <button onclick="refreshApplications()" class="btn-secondary">
+            <RefreshCw size={16} />
+            Actualizar
+          </button>
+          <a href="/admin/dashboard" class="btn-primary">
+            Dashboard
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Filters and Search -->
+    <div class="filters-section">
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <Search size={20} />
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Buscar por nombre, email o negocio..."
+            value={searchQuery}
+          >
+        </div>
+      </div>
+
+      <div class="filters-container">
+        <div class="filter-group">
+          <label for="status-filter">Estado:</label>
+          <div class="select-wrapper">
+            <select id="status-filter">
+              <option value="all">Todos los estados</option>
+              <option value="pending" selected={statusFilter === 'pending'}>Pendientes</option>
+              <option value="approved" selected={statusFilter === 'approved'}>Aprobadas</option>
+              <option value="rejected" selected={statusFilter === 'rejected'}>Rechazadas</option>
+              <option value="under_review" selected={statusFilter === 'under_review'}>En Revisión</option>
+            </select>
+            <ChevronDown size={16} />
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label for="sort-filter">Ordenar:</label>
+          <div class="select-wrapper">
+            <select id="sort-filter">
+              <option value="newest">Más Recientes</option>
+              <option value="oldest">Más Antiguos</option>
+              <option value="name_asc">Nombre A-Z</option>
+              <option value="name_desc">Nombre Z-A</option>
+            </select>
+            <ChevronDown size={16} />
+          </div>
+        </div>
+
+        <button onclick="clearFilters()" class="btn-outline">
+          Limpiar Filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="stats-summary" id="stats-summary">
+      <div class="stat-item">
+        <div class="stat-icon pending">
+          <Clock size={16} />
+        </div>
+        <div class="stat-content">
+          <span class="stat-number" id="pending-count">-</span>
+          <span class="stat-label">Pendientes</span>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon approved">
+          <CheckCircle size={16} />
+        </div>
+        <div class="stat-content">
+          <span class="stat-number" id="approved-count">-</span>
+          <span class="stat-label">Aprobadas</span>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon rejected">
+          <XCircle size={16} />
+        </div>
+        <div class="stat-content">
+          <span class="stat-number" id="rejected-count">-</span>
+          <span class="stat-label">Rechazadas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Applications Table -->
+    <div class="applications-container">
+      <div class="table-container">
+        <!-- Loading State -->
+        <div class="table-loading" id="table-loading">
+          <div class="spinner"></div>
+          <p>Cargando solicitudes...</p>
+        </div>
+
+        <!-- Table -->
+        <div class="applications-table" id="applications-table" style="display: none;">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th class="sortable" onclick="sortBy('business_name')">
+                    <span>Negocio</span>
+                    <SortAsc size={14} class="sort-icon" />
+                  </th>
+                  <th class="sortable" onclick="sortBy('applicant_name')">
+                    <span>Solicitante</span>
+                    <SortAsc size={14} class="sort-icon" />
+                  </th>
+                  <th>Tipo</th>
+                  <th class="sortable" onclick="sortBy('submitted_at')">
+                    <span>Fecha</span>
+                    <SortAsc size={14} class="sort-icon" />
+                  </th>
+                  <th>Documentos</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <!-- Applications will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- No Results -->
+        <div class="no-results" id="no-results" style="display: none;">
+          <FileText size={48} />
+          <h3>No se encontraron solicitudes</h3>
+          <p>No hay solicitudes que coincidan con los filtros seleccionados.</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-state" id="error-state" style="display: none;">
+          <XCircle size={48} />
+          <h3>Error al cargar</h3>
+          <p id="error-message">Hubo un problema al cargar las solicitudes.</p>
+          <button onclick="loadApplications()" class="btn-primary">Reintentar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast" style="display: none;">
+    <div class="toast-content">
+      <span id="toast-message"></span>
+    </div>
+  </div>
+</MainLayout>
+
+<script define:vars={{ 
+  userId: userData?.id, 
+  userEmail: userData?.email,
+  userName: userData?.user_metadata?.full_name || userData?.email?.split('@')[0],
+  initialStatus: statusFilter,
+  initialSearch: searchQuery
+}}>
+  let applications = [];
+  let filteredApplications = [];
+  let currentSort = 'newest';
+
+  // API Configuration
+  const API_BASE_URL = 'http://localhost:8000/api/vendor';
+
+  // Headers para autenticación
+  const getHeaders = () => ({
+    'X-User-Id': userId || 'admin-user-id',
+    'X-User-Email': userEmail || 'admin@example.com',
+    'X-Development-Mode': 'true'
+  });
+
+  // Load applications on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Iniciando carga de aplicaciones...');
+    setupEventListeners();
+    loadApplications();
+    
+    // Set initial filter values
+    document.getElementById('status-filter').value = initialStatus;
+    document.getElementById('search-input').value = initialSearch;
+  });
+
+  function setupEventListeners() {
+    // Search input
+    document.getElementById('search-input').addEventListener('input', debounce(handleSearch, 300));
+    
+    // Filter change
+    document.getElementById('status-filter').addEventListener('change', handleFilter);
+    document.getElementById('sort-filter').addEventListener('change', handleSort);
+  }
+
+  async function loadApplications() {
+    try {
+      console.log('📡 Cargando solicitudes desde API...');
+      showLoading();
+      
+      const response = await fetch(`${API_BASE_URL}/admin/pending`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      console.log('📊 Respuesta del servidor:', response.status);
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const responseData = await response.json();
+      // El backend puede devolver {success: true, data: [...]} o directamente [...]
+      applications = Array.isArray(responseData) ? responseData : (responseData.data || responseData);
+      console.log('✅ Solicitudes cargadas:', applications.length);
+      
+      applyFilters();
+      updateStats();
+      
+    } catch (error) {
+      console.error('❌ Error loading applications:', error);
+      showError(error.message);
+    }
+  }
+
+  function applyFilters() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const statusFilter = document.getElementById('status-filter').value;
+    
+    console.log(`🔍 Aplicando filtros - Buscar: "${searchTerm}", Estado: "${statusFilter}"`);
+    
+    filteredApplications = applications.filter(app => {
+      // Search filter
+      const matchesSearch = !searchTerm || 
+        app.business_name?.toLowerCase().includes(searchTerm) ||
+        app.applicant_name?.toLowerCase().includes(searchTerm) ||
+        app.applicant_email?.toLowerCase().includes(searchTerm);
+      
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || app.application_status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+
+    console.log(`📋 Solicitudes filtradas: ${filteredApplications.length}/${applications.length}`);
+    
+    sortApplications();
+    displayApplications();
+  }
+
+  function sortApplications() {
+    const sortBy = document.getElementById('sort-filter').value;
+    
+    filteredApplications.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.submitted_at) - new Date(a.submitted_at);
+        case 'oldest':
+          return new Date(a.submitted_at) - new Date(b.submitted_at);
+        case 'name_asc':
+          return (a.applicant_name || '').localeCompare(b.applicant_name || '');
+        case 'name_desc':
+          return (b.applicant_name || '').localeCompare(a.applicant_name || '');
+        default:
+          return 0;
+      }
+    });
+  }
+
+  function displayApplications() {
+    console.log('🎨 Mostrando solicitudes en tabla...');
+    const tbody = document.getElementById('table-body');
+    
+    if (!tbody) {
+      console.error('❌ No se encontró el elemento table-body');
+      return;
+    }
+    
+    if (filteredApplications.length === 0) {
+      showNoResults();
+      return;
+    }
+
+    // Generar filas de la tabla
+    const applicationsHtml = filteredApplications.map(app => {
+      const documentsCount = app.documents_count || 0;
+      const submittedDate = app.submitted_at ? new Date(app.submitted_at) : new Date();
+      
+      return `
+        <tr class="table-row" data-id="${app.id}">
+          <td class="business-cell">
+            <div class="business-info">
+              <h4>${app.business_name || 'Sin nombre'}</h4>
+              <span class="business-type">${formatBusinessType(app.business_type)}</span>
+            </div>
+          </td>
+          <td class="applicant-cell">
+            <div class="applicant-info">
+              <div class="applicant-name">${app.applicant_name || 'Sin nombre'}</div>
+              <div class="applicant-email">${app.applicant_email || 'Sin email'}</div>
+            </div>
+          </td>
+          <td class="type-cell">
+            <span class="type-badge">${formatBusinessType(app.business_type)}</span>
+          </td>
+          <td class="date-cell">
+            <div class="date-info">
+              <div class="date">${formatDate(submittedDate)}</div>
+              <div class="time">${formatTime(submittedDate)}</div>
+            </div>
+          </td>
+          <td class="documents-cell">
+            <div class="documents-info">
+              <span class="doc-count">${documentsCount}</span>
+              <span class="doc-label">docs</span>
+            </div>
+          </td>
+          <td class="status-cell">
+            <span class="status-badge status-${app.application_status}">
+              ${getStatusIcon(app.application_status)}
+              ${formatStatus(app.application_status)}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <a href="/admin/application/${app.id}" class="btn-view" title="Ver detalles">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </a>
+              ${app.application_status === 'pending' ? `
+                <button onclick="quickApprove('${app.id}')" class="btn-approve" title="Aprobar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22,4 12,14.01 9,11.01"/>
+                  </svg>
+                </button>
+                <button onclick="quickReject('${app.id}')" class="btn-reject" title="Rechazar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                  </svg>
+                </button>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = applicationsHtml;
+    showTable();
+    console.log('✅ Tabla actualizada correctamente');
+  }
+
+  function updateStats() {
+    const stats = applications.reduce((acc, app) => {
+      acc[app.application_status] = (acc[app.application_status] || 0) + 1;
+      return acc;
+    }, {});
+
+    document.getElementById('pending-count').textContent = stats.pending || 0;
+    document.getElementById('approved-count').textContent = stats.approved || 0;
+    document.getElementById('rejected-count').textContent = stats.rejected || 0;
+  }
+
+  // Event Handlers
+  function handleSearch() {
+    applyFilters();
+  }
+
+  function handleFilter() {
+    applyFilters();
+  }
+
+  function handleSort() {
+    sortApplications();
+    displayApplications();
+  }
+
+  function clearFilters() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('status-filter').value = 'all';
+    document.getElementById('sort-filter').value = 'newest';
+    applyFilters();
+  }
+
+  // Quick Actions
+  async function quickApprove(applicationId) {
+    if (!confirm('¿Estás seguro de que quieres aprobar esta solicitud?')) return;
+    
+    try {
+      showToast('Aprobando solicitud...', 'info');
+      
+      const response = await fetch(`${API_BASE_URL}/admin/approve/${applicationId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getHeaders()
+        },
+        body: JSON.stringify({ commission_rate: 10.0 })
+      });
+
+      if (response.ok) {
+        showToast('Solicitud aprobada exitosamente', 'success');
+        await loadApplications();
+      } else {
+        throw new Error('Error al aprobar la solicitud');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showToast('Error al aprobar la solicitud', 'error');
+    }
+  }
+
+  async function quickReject(applicationId) {
+    const reason = prompt('Motivo del rechazo:');
+    if (!reason) return;
+    
+    try {
+      showToast('Rechazando solicitud...', 'info');
+      
+      const response = await fetch(`${API_BASE_URL}/admin/reject/${applicationId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getHeaders()
+        },
+        body: JSON.stringify({ rejection_reason: reason })
+      });
+
+      if (response.ok) {
+        showToast('Solicitud rechazada exitosamente', 'success');
+        await loadApplications();
+      } else {
+        throw new Error('Error al rechazar la solicitud');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showToast('Error al rechazar la solicitud', 'error');
+    }
+  }
+
+  // Utility Functions
+  function formatBusinessType(type) {
+    const types = {
+      'agencia_viajes': 'Agencia de Viajes',
+      'hotel': 'Hotel',
+      'restaurante': 'Restaurante',
+      'independiente': 'Independiente',
+      'otro': 'Otro'
+    };
+    return types[type] || type || 'Sin tipo';
+  }
+
+  function formatStatus(status) {
+    const statuses = {
+      'pending': 'Pendiente',
+      'under_review': 'En Revisión',
+      'approved': 'Aprobada',
+      'rejected': 'Rechazada'
+    };
+    return statuses[status] || status || 'Sin estado';
+  }
+
+  function getStatusIcon(status) {
+    const icons = {
+      'pending': '⏳',
+      'under_review': '👀',
+      'approved': '✅',
+      'rejected': '❌'
+    };
+    return icons[status] || '📋';
+  }
+
+  function formatDate(date) {
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  }
+
+  function formatTime(date) {
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  // UI State Management
+  function showLoading() {
+    document.getElementById('table-loading').style.display = 'flex';
+    document.getElementById('applications-table').style.display = 'none';
+    document.getElementById('no-results').style.display = 'none';
+    document.getElementById('error-state').style.display = 'none';
+  }
+
+  function showTable() {
+    document.getElementById('table-loading').style.display = 'none';
+    document.getElementById('applications-table').style.display = 'block';
+    document.getElementById('no-results').style.display = 'none';
+    document.getElementById('error-state').style.display = 'none';
+  }
+
+  function showNoResults() {
+    document.getElementById('table-loading').style.display = 'none';
+    document.getElementById('applications-table').style.display = 'none';
+    document.getElementById('no-results').style.display = 'flex';
+    document.getElementById('error-state').style.display = 'none';
+  }
+
+  function showError(message) {
+    document.getElementById('table-loading').style.display = 'none';
+    document.getElementById('applications-table').style.display = 'none';
+    document.getElementById('no-results').style.display = 'none';
+    document.getElementById('error-state').style.display = 'flex';
+    document.getElementById('error-message').textContent = message;
+  }
+
+  // Toast Notifications
+  function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    
+    toastMessage.textContent = message;
+    toast.className = `toast toast-${type}`;
+    toast.style.display = 'block';
+    
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 3000);
+  }
+
+  // Utility function
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // Global functions
+  window.refreshApplications = loadApplications;
+  window.quickApprove = quickApprove;
+  window.quickReject = quickReject;
+  window.clearFilters = clearFilters;
+</script>
+
+<style>
+  /* Variables */
+  :root {
+    --carnival-orange: #ff6b35;
+    --carnival-gold: #f7931e;
+    --carnival-yellow: #ffd700;
+    --carnival-red: #dc2626;
+    --carnival-green: #16a34a;
+    --carnival-blue: #2563eb;
+    --dark-bg: #1a1a2e;
+    --dark-card: rgba(255, 255, 255, 0.05);
+    --dark-border: rgba(255, 255, 255, 0.1);
+    --text-light: rgba(255, 255, 255, 0.9);
+    --text-muted: rgba(255, 255, 255, 0.7);
+  }
+
+  .applications-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 50%, #0f1419 100%);
+    color: white;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .page-header {
+    margin-bottom: 32px;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .header-left h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 2.2rem;
+    margin: 0;
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header-left p {
+    color: var(--text-muted);
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  /* Filters Section */
+  .filters-section {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    backdrop-filter: blur(10px);
+  }
+
+  .search-container {
+    margin-bottom: 20px;
+  }
+
+  .search-input-wrapper {
+    position: relative;
+    max-width: 400px;
+  }
+
+  .search-input-wrapper svg {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+  }
+
+  .search-input-wrapper input {
+    width: 100%;
+    padding: 12px 16px 12px 48px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+  }
+
+  .search-input-wrapper input:focus {
+    outline: none;
+    border-color: var(--carnival-orange);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .filters-container {
+    display: flex;
+    gap: 20px;
+    align-items: end;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filter-group label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .select-wrapper {
+    position: relative;
+  }
+
+  .select-wrapper select {
+    padding: 10px 32px 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    color: white;
+    font-size: 0.95rem;
+    appearance: none;
+    cursor: pointer;
+    min-width: 150px;
+  }
+
+  .select-wrapper svg {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  /* Stats Summary */
+  .stats-summary {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    min-width: 140px;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stat-icon.pending {
+    background: rgba(247, 147, 30, 0.2);
+    color: var(--carnival-gold);
+  }
+
+  .stat-icon.approved {
+    background: rgba(22, 163, 74, 0.2);
+    color: var(--carnival-green);
+  }
+
+  .stat-icon.rejected {
+    background: rgba(220, 38, 38, 0.2);
+    color: var(--carnival-red);
+  }
+
+  .stat-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-light);
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* Applications Table */
+  .applications-container {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+
+  .table-container {
+    min-height: 400px;
+    position: relative;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+  }
+
+  th {
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--dark-border);
+    padding: 16px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  th.sortable {
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+  }
+
+  th.sortable:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-light);
+  }
+
+  .sort-icon {
+    opacity: 0.5;
+    margin-left: 4px;
+  }
+
+  .table-row {
+    border-bottom: 1px solid var(--dark-border);
+    transition: all 0.3s;
+  }
+
+  .table-row:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  td {
+    padding: 16px 12px;
+    vertical-align: middle;
+  }
+
+  /* Table Cell Styles */
+  .business-info h4 {
+    margin: 0 0 4px 0;
+    color: var(--text-light);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .business-type {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .applicant-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .applicant-name {
+    color: var(--text-light);
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  .applicant-email {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .type-badge {
+    background: rgba(37, 99, 235, 0.2);
+    color: var(--carnival-blue);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .date-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .date {
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+
+  .time {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  .documents-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .doc-count {
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .doc-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .status-badge.status-pending {
+    background: rgba(247, 147, 30, 0.2);
+    color: var(--carnival-gold);
+    border: 1px solid rgba(247, 147, 30, 0.3);
+  }
+
+  .status-badge.status-approved {
+    background: rgba(22, 163, 74, 0.2);
+    color: var(--carnival-green);
+    border: 1px solid rgba(22, 163, 74, 0.3);
+  }
+
+  .status-badge.status-rejected {
+    background: rgba(220, 38, 38, 0.2);
+    color: var(--carnival-red);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+  }
+
+  .status-badge.status-under_review {
+    background: rgba(37, 99, 235, 0.2);
+    color: var(--carnival-blue);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .btn-view,
+  .btn-approve,
+  .btn-reject {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+
+  .btn-view {
+    background: rgba(37, 99, 235, 0.2);
+    color: var(--carnival-blue);
+  }
+
+  .btn-view:hover {
+    background: var(--carnival-blue);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .btn-approve {
+    background: rgba(22, 163, 74, 0.2);
+    color: var(--carnival-green);
+  }
+
+  .btn-approve:hover {
+    background: var(--carnival-green);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .btn-reject {
+    background: rgba(220, 38, 38, 0.2);
+    color: var(--carnival-red);
+  }
+
+  .btn-reject:hover {
+    background: var(--carnival-red);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  /* Buttons */
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--carnival-orange), var(--carnival-gold));
+    color: white;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--dark-border);
+  }
+
+  .btn-secondary:hover {
+    background: var(--dark-card);
+    color: var(--text-light);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--carnival-orange);
+    border: 1px solid var(--carnival-orange);
+  }
+
+  .btn-outline:hover {
+    background: var(--carnival-orange);
+    color: white;
+  }
+
+  /* Loading and States */
+  .table-loading,
+  .no-results,
+  .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--dark-border);
+    border-top: 3px solid var(--carnival-orange);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .no-results h3,
+  .error-state h3 {
+    color: var(--text-light);
+    margin: 16px 0 8px 0;
+  }
+
+  /* Toast Notifications */
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+  }
+
+  .toast-success {
+    background: rgba(22, 163, 74, 0.9);
+    color: white;
+    border: 1px solid var(--carnival-green);
+  }
+
+  .toast-error {
+    background: rgba(220, 38, 38, 0.9);
+    color: white;
+    border: 1px solid var(--carnival-red);
+  }
+
+  .toast-info {
+    background: rgba(37, 99, 235, 0.9);
+    color: white;
+    border: 1px solid var(--carnival-blue);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .applications-page {
+      padding: 15px;
+    }
+
+    .header-content {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .header-actions {
+      justify-content: stretch;
+    }
+
+    .header-actions > * {
+      flex: 1;
+    }
+
+    .filters-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .stats-summary {
+      flex-direction: column;
+    }
+
+    .table-wrapper {
+      border-radius: 12px;
+    }
+
+    /* En mobile, usamos cards en lugar de tabla */
+    table, thead, tbody, th, td, tr {
+      display: block;
+    }
+
+    thead tr {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+    }
+
+    .table-row {
+      background: var(--dark-card);
+      margin-bottom: 12px;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--dark-border);
+    }
+
+    .table-row td {
+      border: none;
+      padding: 8px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-row td:before {
+      content: attr(data-label);
+      font-weight: bold;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.8rem;
+    }
+  }
+</style>

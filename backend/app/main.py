@@ -36,6 +36,43 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ===============================
+# IMPORTAR Y REGISTRAR ROUTERS
+# ===============================
+
+# Importar routers
+from app.routes.vendor import router as vendor_router
+
+# Registrar routers con prefijo /api
+app.include_router(vendor_router, prefix="/api")
+
+# ===============================
+# IMPORTAR Y REGISTRAR ROUTERS
+# ===============================
+
+# Importar routers
+from app.routes.vendor import router as vendor_router
+
+# Registrar routers con prefijo /api
+app.include_router(vendor_router, prefix="/api")
+
+# Endpoint de debug para ver rutas
+@app.get("/debug-routes")
+async def debug_routes():
+    """Debug endpoint para ver todas las rutas disponibles"""
+    routes = []
+    for route in app.routes:
+        if hasattr(route, 'methods') and hasattr(route, 'path'):
+            routes.append({
+                "path": route.path,
+                "methods": list(route.methods),
+                "name": getattr(route, 'name', 'unnamed')
+            })
+    return {
+        "total_routes": len(routes),
+        "routes": sorted(routes, key=lambda x: x['path'])
+    }
+
 @app.on_event("startup")
 async def startup_event():
     """Eventos de inicio"""
@@ -88,6 +125,23 @@ async def debug_env():
         "environment_vars_count": len([k for k in os.environ.keys() if k.startswith(('DATABASE', 'SUPABASE', 'SENDGRID'))])
     }
 
+# Endpoint para listar todas las rutas disponibles
+@app.get("/debug-routes")
+async def debug_routes():
+    """Debug endpoint para ver todas las rutas disponibles"""
+    routes = []
+    for route in app.routes:
+        if hasattr(route, 'methods') and hasattr(route, 'path'):
+            routes.append({
+                "path": route.path,
+                "methods": list(route.methods),
+                "name": getattr(route, 'name', 'unnamed')
+            })
+    return {
+        "total_routes": len(routes),
+        "routes": sorted(routes, key=lambda x: x['path'])
+    }
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
@@ -122,6 +176,23 @@ async def health_check():
             "database": "disconnected",
             "error": str(e)
         }
+
+# Endpoint para listar todas las rutas disponibles
+@app.get("/debug-routes")
+async def debug_routes():
+    """Debug endpoint para ver todas las rutas disponibles"""
+    routes = []
+    for route in app.routes:
+        if hasattr(route, 'methods') and hasattr(route, 'path'):
+            routes.append({
+                "path": route.path,
+                "methods": list(route.methods),
+                "name": getattr(route, 'name', 'unnamed')
+            })
+    return {
+        "total_routes": len(routes),
+        "routes": sorted(routes, key=lambda x: x['path'])
+    }
 
 # ===============================
 # ENDPOINTS DE PRUEBA - STORAGE

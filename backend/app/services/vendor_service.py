@@ -197,7 +197,7 @@ class VendorService:
             )
     
     async def get_pending_applications(self) -> List[VendorApplicationAdmin]:
-        """Obtener solicitudes pendientes (admin)"""
+        """Obtener TODAS las solicitudes (no solo pendientes) para el admin"""
         async with get_db() as conn:
             applications = await conn.fetch(
                 """
@@ -206,9 +206,8 @@ class VendorService:
                 FROM vendor_applications va
                 JOIN user_profiles up ON va.user_id = up.id
                 LEFT JOIN verification_documents vd ON va.id = vd.application_id
-                WHERE va.application_status = 'pending'
                 GROUP BY va.id, up.full_name, up.email
-                ORDER BY va.submitted_at ASC
+                ORDER BY va.submitted_at DESC
                 """
             )
             
@@ -228,7 +227,324 @@ class VendorService:
                 )
                 for app in applications
             ]
-    
+
+    async def get_application_by_id(self, application_id: UUID) -> Optional[Dict[str, Any]]:
+        """Obtener detalles completos de una solicitud por ID (admin) - CON DEBUG"""
+        logger.info(f"🔍 Getting application details for ID: {application_id}")
+        
+        try:
+            async with get_db() as conn:
+                logger.info("📡 Database connection established")
+                
+                # Obtener solicitud con datos del usuario
+                logger.info("🔎 Fetching application with user data...")
+                application = await conn.fetchrow(
+                    """
+                    SELECT va.*, up.full_name as applicant_name, up.email as applicant_email,
+                           up.phone as applicant_phone, up.created_at as user_created_at
+                    FROM vendor_applications va
+                    JOIN user_profiles up ON va.user_id = up.id
+                    WHERE va.id = $1
+                    """,
+                    application_id
+                )
+                
+                if not application:
+                    logger.warning(f"❌ Application not found for ID: {application_id}")
+                    return None
+                
+                logger.info(f"✅ Application found: {application['business_name']}")
+                
+                # Obtener documentos
+                logger.info("📄 Fetching documents...")
+                documents = await conn.fetch(
+                    """
+                    SELECT id, document_type, document_name, file_url,
+                           file_size, mime_type, verification_status, 
+                           uploaded_at, verified_at
+                    FROM verification_documents
+                    WHERE application_id = $1
+                    ORDER BY uploaded_at DESC
+                    """,
+                    application_id
+                )
+                
+                logger.info(f"📄 Found {len(documents)} documents")
+                
+                # Obtener historial de cambios si existe (simplificado por ahora)
+                logger.info("📋 Fetching role change history...")
+                try:
+                    # Primero intentamos ver qué columnas existen
+                    test_history = await conn.fetchrow(
+                        """
+                        SELECT * FROM role_change_history 
+                        WHERE user_id = $1 
+                        LIMIT 1
+                        """,
+                        application['user_id']
+                    )
+                    
+                    if test_history:
+                        logger.info(f"📋 History table columns: {list(test_history.keys())}")
+                        
+                        # Ahora obtenemos todos los registros
+                        history = await conn.fetch(
+                            """
+                            SELECT rch.*, up.full_name as changed_by_name
+                            FROM role_change_history rch
+                            LEFT JOIN user_profiles up ON rch.changed_by = up.id
+                            WHERE rch.user_id = $1
+                            ORDER BY rch.created_at DESC
+                            """,
+                            application['user_id']
+                        )
+                    else:
+                        history = []
+                    
+                    logger.info(f"📋 Found {len(history)} history records")
+                except Exception as e:
+                    logger.error(f"❌ Error fetching history (continuing anyway): {e}")
+                    history = []
+                
+                # Construir respuesta paso a paso
+                logger.info("🏗️ Building response object...")
+                
+                try:
+                    response_data = {
+                        "id": str(application['id']),
+                        "user_id": str(application['user_id']),
+                        "applicant_name": application.get('applicant_name', 'N/A'),
+                        "applicant_email": application.get('applicant_email', 'N/A'),
+                        "applicant_phone": application.get('applicant_phone'),
+                        "user_created_at": application.get('user_created_at'),
+                        "business_name": application.get('business_name', 'N/A'),
+                        "business_type": application.get('business_type', 'N/A'),
+                        "tax_id": application.get('tax_id'),
+                        "business_address": application.get('business_address'),
+                        "business_phone": application.get('business_phone'),
+                        "business_email": application.get('business_email'),
+                        "years_of_experience": application.get('years_of_experience'),
+                        "description": application.get('description'),
+                        "why_want_to_sell": application.get('why_want_to_sell'),
+                        "expected_sales_volume": application.get('expected_sales_volume'),
+                        "application_status": application.get('application_status', 'unknown'),
+                        "submitted_at": application.get('submitted_at'),
+                        "reviewed_at": application.get('reviewed_at'),
+                        "approved_at": application.get('approved_at'),
+                        "reviewed_by": str(application['reviewed_by']) if application.get('reviewed_by') else None,
+                        "rejection_reason": application.get('rejection_reason'),
+                    }
+                    
+                    logger.info("📄 Processing documents...")
+                    response_data["documents"] = []
+                    for doc in documents:
+                        try:
+                            doc_data = {
+                                "id": str(doc['id']),
+                                "document_type": doc.get('document_type', 'unknown'),
+                                "document_name": doc.get('document_name', 'unknown'),
+                                "file_url": doc.get('file_url', ''),
+                                "file_size": doc.get('file_size', 0),
+                                "mime_type": doc.get('mime_type', ''),
+                                "verification_status": doc.get('verification_status', 'pending'),
+                                "uploaded_at": doc.get('uploaded_at'),
+                                "verified_at": doc.get('verified_at')
+                            }
+                            response_data["documents"].append(doc_data)
+                        except Exception as e:
+                            logger.error(f"❌ Error processing document {doc.get('id', 'unknown')}: {e}")
+                    
+                    logger.info("📋 Processing history...")
+                    response_data["history"] = []
+                    for h in history:
+                        try:
+                            # Usar las columnas que realmente existen
+                            history_data = {
+                                "id": str(h.get('id', 'unknown')),
+                                "previous_role": h.get('previous_role', 'unknown'),
+                                "new_role": h.get('new_role', 'unknown'),
+                                "reason": h.get('reason', ''),
+                                "changed_by_name": h.get('changed_by_name', 'System')
+                            }
+                            
+                            # Intentar diferentes nombres de columna para la fecha
+                            if 'created_at' in h:
+                                history_data["created_at"] = h['created_at']
+                            elif 'changed_at' in h:
+                                history_data["created_at"] = h['changed_at']
+                            elif 'timestamp' in h:
+                                history_data["created_at"] = h['timestamp']
+                            else:
+                                history_data["created_at"] = None
+                            
+                            response_data["history"].append(history_data)
+                        except Exception as e:
+                            logger.error(f"❌ Error processing history record {h.get('id', 'unknown')}: {e}")
+                    
+                    logger.info("✅ Response object built successfully")
+                    return response_data
+                    
+                except Exception as e:
+                    logger.error(f"❌ Error building response object: {e}")
+                    logger.error(f"Application data keys: {list(application.keys()) if application else 'None'}")
+                    raise e
+                    
+        except Exception as e:
+            logger.error(f"❌ Error in get_application_by_id: {e}")
+            logger.error(f"Error type: {type(e)}")
+            raise e
+
+    async def get_applications_by_status(self, status: str) -> List[VendorApplicationAdmin]:
+        """Obtener solicitudes por estado específico"""
+        async with get_db() as conn:
+            applications = await conn.fetch(
+                """
+                SELECT va.*, up.full_name as applicant_name, up.email as applicant_email,
+                       COUNT(vd.id) as documents_count
+                FROM vendor_applications va
+                JOIN user_profiles up ON va.user_id = up.id
+                LEFT JOIN verification_documents vd ON va.id = vd.application_id
+                WHERE va.application_status = $1
+                GROUP BY va.id, up.full_name, up.email
+                ORDER BY va.submitted_at DESC
+                """,
+                status
+            )
+            
+            return [
+                VendorApplicationAdmin(
+                    id=str(app['id']),
+                    user_id=str(app['user_id']),
+                    applicant_name=app['applicant_name'],
+                    applicant_email=app['applicant_email'],
+                    business_name=app['business_name'],
+                    business_type=app['business_type'],
+                    tax_id=app.get('tax_id'),
+                    application_status=app['application_status'],
+                    submitted_at=app['submitted_at'],
+                    documents_count=app['documents_count'],
+                    why_want_to_sell=app['why_want_to_sell']
+                )
+                for app in applications
+            ]
+
+    async def get_application_stats(self) -> Dict[str, Any]:
+        """Obtener estadísticas de solicitudes para dashboard"""
+        async with get_db() as conn:
+            # Estadísticas básicas
+            stats = await conn.fetchrow(
+                """
+                SELECT 
+                    COUNT(*) as total_applications,
+                    COUNT(*) FILTER (WHERE application_status = 'pending') as pending_count,
+                    COUNT(*) FILTER (WHERE application_status = 'approved') as approved_count,
+                    COUNT(*) FILTER (WHERE application_status = 'rejected') as rejected_count,
+                    COUNT(*) FILTER (WHERE application_status = 'under_review') as under_review_count
+                FROM vendor_applications
+                """
+            )
+            
+            # Aplicaciones recientes (últimos 7 días)
+            recent_count = await conn.fetchval(
+                """
+                SELECT COUNT(*) FROM vendor_applications 
+                WHERE submitted_at >= NOW() - INTERVAL '7 days'
+                """
+            )
+            
+            # Aplicaciones por tipo de negocio
+            business_types = await conn.fetch(
+                """
+                SELECT business_type, COUNT(*) as count
+                FROM vendor_applications
+                GROUP BY business_type
+                ORDER BY count DESC
+                """
+            )
+            
+            return {
+                "total_applications": stats['total_applications'],
+                "pending_count": stats['pending_count'],
+                "approved_count": stats['approved_count'],
+                "rejected_count": stats['rejected_count'],
+                "under_review_count": stats['under_review_count'],
+                "recent_applications": recent_count,
+                "business_types": [
+                    {"type": bt['business_type'], "count": bt['count']}
+                    for bt in business_types
+                ],
+                "approval_rate": round(
+                    (stats['approved_count'] / max(stats['total_applications'], 1)) * 100, 2
+                ) if stats['total_applications'] > 0 else 0
+            }
+
+    async def update_application_status(
+        self, 
+        application_id: UUID, 
+        new_status: str, 
+        admin_id: UUID,
+        notes: Optional[str] = None
+    ) -> Dict[str, str]:
+        """Actualizar estado de solicitud (genérico)"""
+        async with get_db() as conn:
+            # Verificar que la solicitud existe
+            application = await conn.fetchrow(
+                "SELECT id, application_status FROM vendor_applications WHERE id = $1",
+                application_id
+            )
+            
+            if not application:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Solicitud no encontrada"
+                )
+            
+            # Actualizar estado
+            await conn.execute(
+                """
+                UPDATE vendor_applications 
+                SET application_status = $1,
+                    reviewed_by = $2,
+                    reviewed_at = NOW(),
+                    notes = COALESCE($3, notes)
+                WHERE id = $4
+                """,
+                new_status, admin_id, notes, application_id
+            )
+            
+            return {"message": f"Estado actualizado a {new_status}"}
+
+    async def get_vendor_by_user_id(self, user_id: UUID) -> Optional[Dict[str, Any]]:
+        """Obtener información de vendedor por user_id"""
+        async with get_db() as conn:
+            vendor = await conn.fetchrow(
+                """
+                SELECT up.*, vs.commission_rate, vs.activated_at, vs.is_active as vendor_active,
+                       vs.total_sales, vs.total_commission
+                FROM user_profiles up
+                LEFT JOIN vendor_settings vs ON up.id = vs.user_id
+                WHERE up.id = $1 AND up.role = 'vendedor'
+                """,
+                user_id
+            )
+            
+            if not vendor:
+                return None
+                
+            return {
+                "id": str(vendor['id']),
+                "full_name": vendor['full_name'],
+                "email": vendor['email'],
+                "phone": vendor.get('phone'),
+                "user_role": vendor['role'],
+                "is_verified": vendor['is_verified'],
+                "commission_rate": vendor.get('commission_rate'),
+                "activated_at": vendor.get('activated_at'),
+                "vendor_active": vendor.get('vendor_active', False),
+                "total_sales": vendor.get('total_sales', 0),
+                "total_commission": vendor.get('total_commission', 0)
+            }
+
     async def approve_application(
         self,
         application_id: UUID,
@@ -272,7 +588,7 @@ class VendorService:
                 await conn.execute(
                     """
                     UPDATE user_profiles 
-                    SET user_role = 'vendedor', 
+                    SET role = 'vendedor', 
                         is_verified = true,
                         verification_status = 'approved',
                         updated_at = NOW()
@@ -285,8 +601,13 @@ class VendorService:
                 await conn.execute(
                     """
                     INSERT INTO vendor_settings (
-                        user_id, commission_rate, activated_at
-                    ) VALUES ($1, $2, NOW())
+                        user_id, commission_rate, activated_at, is_active
+                    ) VALUES ($1, $2, NOW(), true)
+                    ON CONFLICT (user_id) 
+                    DO UPDATE SET 
+                        commission_rate = $2,
+                        activated_at = NOW(),
+                        is_active = true
                     """,
                     application['user_id'], commission_rate
                 )
@@ -295,8 +616,8 @@ class VendorService:
                 await conn.execute(
                     """
                     INSERT INTO role_change_history (
-                        user_id, previous_role, new_role, changed_by, reason
-                    ) VALUES ($1, 'cliente', 'vendedor', $2, 'Promoción tras verificación')
+                        user_id, previous_role, new_role, changed_by, reason, created_at
+                    ) VALUES ($1, 'cliente', 'vendedor', $2, 'Promoción tras verificación', NOW())
                     """,
                     application['user_id'], admin_id
                 )
@@ -390,7 +711,7 @@ class VendorService:
         """Notificar a administradores"""
         async with get_db() as conn:
             admins = await conn.fetch(
-                "SELECT email FROM user_profiles WHERE user_role = 'administrador' AND is_active = true"
+                "SELECT email FROM user_profiles WHERE role = 'administrador' AND is_active = true"
             )
             
             for admin in admins:
