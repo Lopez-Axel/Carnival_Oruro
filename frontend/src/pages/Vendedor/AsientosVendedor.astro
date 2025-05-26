@@ -85,7 +85,15 @@ import MainLayout from '../../layouts/MainLayout.astro';
 
         <!-- Mapa Interactivo -->
         <div class="bg-blue-900/40 p-4 rounded-xl">
-          <h3 class="text-white font-semibold mb-4">MAPA INTERACTIVO</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-white font-semibold">MAPA INTERACTIVO</h3>
+            <a href="/Vendedor/UbicarGraderia" class="flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-sm shadow">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 12.414a4 4 0 10-1.414 1.414l4.243 4.243a1 1 0 001.414-1.414zM15 11a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              Establecer ubicación
+            </a>
+          </div>
           <div class="space-y-4">
             <!-- Fila 1 (C) -->
             <div class="flex items-center gap-4">
@@ -278,4 +286,4 @@ import MainLayout from '../../layouts/MainLayout.astro';
   document.querySelectorAll('.backdrop-blur-lg').forEach((el) => {
     observer.observe(el);
   });
-</script> 
+</script>

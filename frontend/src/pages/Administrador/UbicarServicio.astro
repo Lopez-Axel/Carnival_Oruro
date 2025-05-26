@@ -1,0 +1,585 @@
+---
+// src/pages/mapa.astro
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocalización - Mapa Interactivo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #1e1b4b 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: rgba(30, 58, 138, 0.9);
+            border-radius: 15px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(147, 197, 253, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .map-container {
+            flex: 1;
+            background: rgba(30, 27, 75, 0.8);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(147, 197, 253, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #1e1b4b, #312e81);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        h1 {
+            color: #93c5fd;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section h3 {
+            color: #bfdbfe;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(147, 197, 253, 0.2);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-full {
+            grid-column: 1 / -1;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6366f1, #4338ca);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #5b21b6, #3730a3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #bfdbfe;
+            font-weight: 500;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid rgba(147, 197, 253, 0.3);
+            border-radius: 8px;
+            background: rgba(30, 58, 138, 0.5);
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .service-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(30, 27, 75, 0.5);
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.7rem;
+            margin-bottom: 0.5rem;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .service-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .service-info {
+            flex: 1;
+        }
+
+        .service-name {
+            font-weight: 600;
+            color: #93c5fd;
+        }
+
+        .service-type {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn-small {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.8rem;
+            min-width: auto;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .search-bar {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            right: 4rem;
+            z-index: 10;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: none;
+            border-radius: 25px;
+            background: rgba(30, 58, 138, 0.9);
+            color: white;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(147, 197, 253, 0.3);
+        }
+
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .map-legend {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(30, 58, 138, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(147, 197, 253, 0.2);
+            z-index: 10;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Colores para diferentes tipos de servicios */
+        .sanitario { background-color: #10b981; }
+        .gasolinera { background-color: #f59e0b; }
+        .hospital { background-color: #ef4444; }
+        .restaurante { background-color: #8b5cf6; }
+        .hotel { background-color: #06b6d4; }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 27, 75, 0.3);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.6);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+                order: 2;
+            }
+
+            .map-container {
+                height: 400px;
+                order: 1;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar con controles -->
+        <div class="sidebar">
+            <h1>🗺️ Control de Mapa</h1>
+            
+            <!-- Sección de navegación -->
+            <div class="section">
+                <h3>📍 Navegación</h3>
+                <div class="controls-grid">
+                    <button class="btn" onclick="getCurrentLocation()">Mi Ubicación</button>
+                    <button class="btn" onclick="centerMap()">Centrar Mapa</button>
+                    <button class="btn btn-secondary" onclick="toggleSatellite()">Vista Satélite</button>
+                    <button class="btn btn-secondary" onclick="toggleTraffic()">Tráfico</button>
+                </div>
+            </div>
+
+            <!-- Sección de servicios -->
+            <div class="section">
+                <h3>🏪 Agregar Servicio</h3>
+                <div class="input-group">
+                    <label for="serviceName">Nombre del Servicio</label>
+                    <input type="text" id="serviceName" placeholder="Ej: Baño Público Central">
+                </div>
+                <div class="input-group">
+                    <label for="serviceType">Tipo de Servicio</label>
+                    <select id="serviceType">
+                        <option value="sanitario">🚻 Servicio Sanitario</option>
+                        <option value="gasolinera">⛽ Gasolinera</option>
+                        <option value="hospital">🏥 Hospital/Clínica</option>
+                        <option value="restaurante">🍽️ Restaurante</option>
+                        <option value="hotel">🏨 Hotel</option>
+                    </select>
+                </div>
+                <button class="btn btn-full" onclick="addService()">Agregar al Mapa</button>
+            </div>
+
+            <!-- Lista de servicios agregados -->
+            <div class="section">
+                <h3>📋 Servicios Agregados</h3>
+                <div class="service-list" id="serviceList">
+                    <div class="service-item">
+                        <div class="service-info">
+                            <div class="service-name">Baño Plaza Central</div>
+                            <div class="service-type">Servicio Sanitario</div>
+                        </div>
+                        <button class="btn btn-danger btn-small" onclick="removeService(0)">Eliminar</button>
+                    </div>
+                    <div class="service-item">
+                        <div class="service-info">
+                            <div class="service-name">Gasolinera Norte</div>
+                            <div class="service-type">Gasolinera</div>
+                        </div>
+                        <button class="btn btn-danger btn-small" onclick="removeService(1)">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Herramientas adicionales -->
+            <div class="section">
+                <h3>🛠️ Herramientas</h3>
+                <div class="controls-grid">
+                    <button class="btn btn-secondary" onclick="measureDistance()">Medir Distancia</button>
+                    <button class="btn btn-secondary" onclick="drawRoute()">Trazar Ruta</button>
+                    <button class="btn" onclick="exportData()">Exportar Datos</button>
+                    <button class="btn btn-danger" onclick="clearAll()">Limpiar Todo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenedor del mapa -->
+        <div class="map-container">
+            <!-- Barra de búsqueda -->
+            <div class="search-bar">
+                <input type="text" placeholder="🔍 Buscar dirección, lugar o servicio..." id="searchInput">
+            </div>
+
+            <!-- Controles del mapa -->
+            <div class="map-controls">
+                <button class="btn btn-small" onclick="zoomIn()">🔍+</button>
+                <button class="btn btn-small" onclick="zoomOut()">🔍-</button>
+                <button class="btn btn-small" onclick="toggleFullscreen()">⛶</button>
+            </div>
+
+            <!-- Área donde se cargará el mapa de Google -->
+            <div class="map-placeholder" id="googleMap">
+                <div>
+                    <h3>🗺️ Área del Mapa</h3>
+                    <p>Aquí se cargará Google Maps</p>
+                    <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.7;">
+                        Conecta tu API de Google Maps aquí
+                    </p>
+                </div>
+            </div>
+
+            <!-- Leyenda -->
+            <div class="map-legend">
+                <h4 style="margin-bottom: 0.5rem; color: #93c5fd;">Leyenda</h4>
+                <div class="legend-item">
+                    <div class="legend-color sanitario"></div>
+                    <span>Servicios Sanitarios</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color gasolinera"></div>
+                    <span>Gasolineras</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color hospital"></div>
+                    <span>Hospitales</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color restaurante"></div>
+                    <span>Restaurantes</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color hotel"></div>
+                    <span>Hoteles</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variable para almacenar los servicios
+        let services = [
+            { name: "Baño Plaza Central", type: "sanitario" },
+            { name: "Gasolinera Norte", type: "gasolinera" }
+        ];
+
+        // Funciones de navegación
+        function getCurrentLocation() {
+            console.log("Obteniendo ubicación actual...");
+            // Aquí conectarás con la geolocalización del navegador y Google Maps
+        }
+
+        function centerMap() {
+            console.log("Centrando mapa...");
+            // Aquí centrarás el mapa de Google
+        }
+
+        function toggleSatellite() {
+            console.log("Alternando vista satélite...");
+            // Aquí cambiarás entre vista normal y satélite
+        }
+
+        function toggleTraffic() {
+            console.log("Alternando vista de tráfico...");
+            // Aquí mostrarás/ocultarás el tráfico
+        }
+
+        // Funciones de servicios
+        function addService() {
+            const name = document.getElementById('serviceName').value;
+            const type = document.getElementById('serviceType').value;
+            
+            if (name.trim()) {
+                services.push({ name, type });
+                updateServiceList();
+                document.getElementById('serviceName').value = '';
+                console.log("Servicio agregado:", { name, type });
+                // Aquí agregarás el marcador al mapa de Google
+            }
+        }
+
+        function removeService(index) {
+            services.splice(index, 1);
+            updateServiceList();
+            console.log("Servicio eliminado");
+            // Aquí removerás el marcador del mapa
+        }
+
+        function updateServiceList() {
+            const serviceList = document.getElementById('serviceList');
+            serviceList.innerHTML = '';
+            
+            services.forEach((service, index) => {
+                const serviceItem = document.createElement('div');
+                serviceItem.className = 'service-item';
+                serviceItem.innerHTML = `
+                    <div class="service-info">
+                        <div class="service-name">${service.name}</div>
+                        <div class="service-type">${getServiceTypeLabel(service.type)}</div>
+                    </div>
+                    <button class="btn btn-danger btn-small" onclick="removeService(${index})">Eliminar</button>
+                `;
+                serviceList.appendChild(serviceItem);
+            });
+        }
+
+        function getServiceTypeLabel(type) {
+            const labels = {
+                'sanitario': 'Servicio Sanitario',
+                'gasolinera': 'Gasolinera',
+                'hospital': 'Hospital/Clínica',
+                'restaurante': 'Restaurante',
+                'hotel': 'Hotel'
+            };
+            return labels[type] || type;
+        }
+
+        // Funciones de herramientas
+        function measureDistance() {
+            console.log("Midiendo distancia...");
+            // Aquí implementarás la medición de distancia
+        }
+
+        function drawRoute() {
+            console.log("Trazando ruta...");
+            // Aquí implementarás el trazado de rutas
+        }
+
+        function exportData() {
+            console.log("Exportando datos...", services);
+            // Aquí exportarás los datos de servicios
+            const dataStr = JSON.stringify(services, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = 'servicios_mapa.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function clearAll() {
+            if (confirm('¿Estás seguro de que quieres eliminar todos los servicios?')) {
+                services = [];
+                updateServiceList();
+                console.log("Todos los servicios eliminados");
+                // Aquí limpiarás todos los marcadores del mapa
+            }
+        }
+
+        // Funciones de control del mapa
+        function zoomIn() {
+            console.log("Zoom in...");
+            // Aquí harás zoom in al mapa
+        }
+
+        function zoomOut() {
+            console.log("Zoom out...");
+            // Aquí harás zoom out al mapa
+        }
+
+        function toggleFullscreen() {
+            console.log("Alternando pantalla completa...");
+            // Aquí implementarás pantalla completa
+        }
+
+        // Búsqueda
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value;
+                console.log("Buscando:", query);
+                // Aquí implementarás la búsqueda en Google Maps
+            }
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            updateServiceList();
+            console.log("Interfaz de mapa inicializada");
+            // Aquí inicializarás Google Maps
+        });
+    </script>
+</body>
+</html>

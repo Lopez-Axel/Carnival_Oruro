@@ -1,0 +1,432 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import ModalRegistro from '../../components/ModalRegistro.astro';
+
+// Configuración de campos para cada tipo de registro
+const festivalFields = [
+  {
+    name: "title",
+    label: "Nombre del Festival",
+    type: "text",
+    placeholder: "Ej: Entrada del Carnaval",
+    required: true
+  },
+  {
+    name: "date",
+    label: "Fecha",
+    type: "date",
+    required: true
+  },
+  {
+    name: "description",
+    label: "Descripción",
+    type: "textarea",
+    placeholder: "Descripción del festival...",
+    required: true
+  },
+  {
+    name: "startTime",
+    label: "Hora de Inicio",
+    type: "time",
+    required: true
+  },
+  {
+    name: "endTime",
+    label: "Hora de Fin",
+    type: "time",
+    required: true
+  },
+  {
+    name: "category",
+    label: "Categoría",
+    type: "select",
+    options: [
+      { value: "principal", label: "Principal" },
+      { value: "especial", label: "Especial" },
+      { value: "secundario", label: "Secundario" }
+    ],
+    required: true
+  }
+];
+
+const noticiaFields = [
+  {
+    name: "title",
+    label: "Título de la Noticia",
+    type: "text",
+    placeholder: "Título de la noticia",
+    required: true
+  },
+  {
+    name: "content",
+    label: "Contenido",
+    type: "textarea",
+    placeholder: "Contenido de la noticia...",
+    required: true
+  },
+  {
+    name: "image",
+    label: "Imagen de Portada",
+    type: "file",
+    required: true
+  }
+];
+
+const bandaFields = [
+  {
+    name: "name",
+    label: "Nombre de la Banda",
+    type: "text",
+    placeholder: "Nombre de la banda",
+    required: true
+  },
+  {
+    name: "genre",
+    label: "Género Musical",
+    type: "text",
+    placeholder: "Ej: Folklórica",
+    required: true
+  },
+  {
+    name: "description",
+    label: "Descripción",
+    type: "textarea",
+    placeholder: "Descripción de la banda...",
+    required: true
+  },
+  {
+    name: "photo",
+    label: "Foto de la Banda",
+    type: "file",
+    required: true
+  }
+];
+---
+
+<MainLayout>
+  <div class="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-indigo-900 via-purple-900 to-red-900 pt-20 px-4 md:px-8">
+    <div class="max-w-7xl mx-auto">
+      <!-- Header Card -->
+      <div class="bg-red-700 rounded-t-2xl shadow-lg">
+        <div class="p-4 flex justify-between items-center">
+          <div class="flex-1">
+            <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+              PANEL DE CONTROL ADMINISTRATIVO
+              <span class="text-lg font-normal">(Carnaval de Oruro 2025)</span>
+            </h1>
+          </div>
+          <div class="flex items-center gap-4">
+            <button class="px-4 py-2 bg-red-800 hover:bg-red-600 text-white rounded-lg transition">
+              Generar Reporte
+            </button>
+            <div class="relative">
+              <img src="/images/Ejemplo.jpeg" alt="Perfil" class="w-12 h-12 rounded-full border-2 border-white cursor-pointer"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+        <!-- Estadísticas Generales -->
+        <div class="bg-blue-900/40 p-6 rounded-xl">
+          <h2 class="text-xl font-bold text-white mb-4">Estadísticas Generales</h2>
+          <div class="space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-300">Total Ventas</span>
+              <span class="text-white font-bold">Bs. 125,000</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-300">Tickets Vendidos</span>
+              <span class="text-white font-bold">1,250</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-300">Vendedores Activos</span>
+              <span class="text-white font-bold">15</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-300">Supervisores</span>
+              <span class="text-white font-bold">5</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Control de Usuarios -->
+        <div class="bg-blue-900/40 p-6 rounded-xl">
+          <h2 class="text-xl font-bold text-white mb-4">Control de Usuarios</h2>
+          <div class="space-y-4">
+            <button class="w-full p-3 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded-lg transition flex items-center justify-between">
+              <span>Gestionar Vendedores</span>
+              <span class="bg-purple-500/50 px-2 py-1 rounded">15</span>
+            </button>
+            <button class="w-full p-3 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded-lg transition flex items-center justify-between">
+              <span>Gestionar Supervisores</span>
+              <span class="bg-purple-500/50 px-2 py-1 rounded">5</span>
+            </button>
+            <button class="w-full p-3 bg-purple-600/50 hover:bg-purple-600/70 text-white rounded-lg transition flex items-center justify-between">
+              <span>Permisos y Roles</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Gestión de Eventos -->
+        <div class="bg-blue-900/40 p-6 rounded-xl">
+          <h2 class="text-xl font-bold text-white mb-4">Gestión de Eventos</h2>
+          <div class="space-y-4">
+            <button 
+              class="w-full p-4 bg-gradient-to-r from-purple-600 to-red-600 hover:from-purple-700 hover:to-red-700 text-white rounded-lg transition flex items-center justify-between group"
+              onclick="openModal('festival')"
+            >
+              <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span>Crear Festival</span>
+              </div>
+              <span class="bg-white/20 px-3 py-1 rounded-full text-sm group-hover:bg-white/30">Nuevo</span>
+            </button>
+
+            <button 
+              class="w-full p-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition flex items-center justify-between group"
+              onclick="openModal('noticia')"
+            >
+              <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+                <span>Crear Noticia</span>
+              </div>
+              <span class="bg-white/20 px-3 py-1 rounded-full text-sm group-hover:bg-white/30">Nuevo</span>
+            </button>
+
+            <button 
+              class="w-full p-4 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white rounded-lg transition flex items-center justify-between group"
+              onclick="openModal('banda')"
+            >
+              <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                </svg>
+                <span>Crear Banda</span>
+              </div>
+              <span class="bg-white/20 px-3 py-1 rounded-full text-sm group-hover:bg-white/30">Nuevo</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Gestión de Servicios -->
+        <div class="bg-blue-900/40 p-6 rounded-xl">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-white">Gestión de Servicios</h2>
+            <a href="/Administrador/UbicarServicio" class="flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-sm shadow">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Agregar
+            </a>
+          </div>
+          <div class="space-y-4">
+            <button class="w-full p-4 bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white rounded-lg transition flex items-center justify-between group">
+              <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h2a4 4 0 014 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                </svg>
+                <span>Servicio de sanitario</span>
+              </div>
+            </button>
+            <button class="w-full p-4 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-lg transition flex items-center justify-between group">
+              <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10v10a1 1 0 001 1h16a1 1 0 001-1V10M4 10V7a4 4 0 014-4h8a4 4 0 014 4v3" />
+                </svg>
+                <span>Servicio de hospedaje</span>
+              </div>
+            </button>
+            <button class="w-full p-4 bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 text-white rounded-lg transition flex items-center justify-between group">
+              <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m4 0h-1v4h-1m-4 0h-1v-4h-1m4 0h-1v4h-1" />
+                </svg>
+                <span>Servicio de seguridad</span>
+              </div>
+            </button>
+            <button class="w-full p-4 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white rounded-lg transition flex items-center justify-between group">
+              <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-1.414 1.414A9 9 0 105.636 18.364l1.414-1.414A7 7 0 1116.95 7.05l1.414-1.414z" />
+                </svg>
+                <span>Servicio de emergencia</span>
+              </div>
+            </button>
+            <button class="w-full p-4 bg-gradient-to-r from-pink-500 to-pink-700 hover:from-pink-600 hover:to-pink-800 text-white rounded-lg transition flex items-center justify-between group">
+              <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+                <span>Servicio de comida</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Actividad Reciente -->
+      <div class="mt-8">
+        <div class="bg-blue-900/80 rounded-t-xl p-4">
+          <h2 class="text-xl font-bold text-white">ACTIVIDAD RECIENTE</h2>
+        </div>
+        
+        <div class="backdrop-blur-lg bg-white/10 rounded-b-xl border border-white/20 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="bg-blue-900/40">
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Usuario</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Acción</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Evento</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Fecha</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Estado</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-blue-900/40">
+                <tr class="hover:bg-blue-900/20">
+                  <td class="px-6 py-4 whitespace-nowrap text-white">Juan Pérez</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-white">Venta de tickets</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-white">Entrada del Carnaval</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-white">2024-02-20 15:30</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-300">Completado</span>
+                  </td>
+                </tr>
+                <tr class="hover:bg-blue-900/20">
+                  <td class="px-6 py-4 whitespace-nowrap text-white">María López</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-white">Actualización de zona</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-white">Velada del Carnaval</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-white">2024-02-20 14:45</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-300">Pendiente</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modales -->
+  <ModalRegistro
+    isOpen={false}
+    title="Crear Nuevo Festival"
+    fields={festivalFields}
+    submitText="Crear Festival"
+    onSubmit={(data) => handleSubmit('festival', data)}
+    onClose={() => closeModal()}
+  />
+
+  <ModalRegistro
+    isOpen={false}
+    title="Crear Nueva Noticia"
+    fields={noticiaFields}
+    submitText="Publicar Noticia"
+    onSubmit={(data) => handleSubmit('noticia', data)}
+    onClose={() => closeModal()}
+  />
+
+  <ModalRegistro
+    isOpen={false}
+    title="Registrar Nueva Banda"
+    fields={bandaFields}
+    submitText="Registrar Banda"
+    onSubmit={(data) => handleSubmit('banda', data)}
+    onClose={() => closeModal()}
+  />
+</MainLayout>
+
+<style>
+  /* Animaciones */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .backdrop-blur-lg {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  /* Estilos para inputs y textareas */
+  input[type="text"],
+  input[type="date"],
+  input[type="time"],
+  textarea {
+    transition: all 0.3s ease;
+  }
+
+  input[type="text"]:focus,
+  input[type="date"]:focus,
+  input[type="time"]:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
+
+  /* Estilos para botones */
+  button {
+    transition: all 0.3s ease;
+  }
+
+  button:hover {
+    transform: translateY(-1px);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+</style>
+
+<script>
+  let currentModal = null;
+
+  function openModal(type) {
+    currentModal = type;
+    const modal = document.querySelector(`[data-modal="${type}"]`);
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  function closeModal() {
+    if (currentModal) {
+      const modal = document.querySelector(`[data-modal="${currentModal}"]`);
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      currentModal = null;
+    }
+  }
+
+  function handleSubmit(type, data) {
+    console.log(`Enviando datos de ${type}:`, data);
+    // Aquí iría la lógica para enviar los datos al backend
+    alert(`¡${type.charAt(0).toUpperCase() + type.slice(1)} creado exitosamente!`);
+  }
+
+  // Escuchar el evento de envío del modal
+  window.addEventListener('modalSubmit', (e) => {
+    if (currentModal) {
+      handleSubmit(currentModal, e.detail);
+    }
+  });
+</script>

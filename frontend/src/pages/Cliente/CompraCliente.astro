@@ -146,11 +146,10 @@ import MainLayout from '../../layouts/MainLayout.astro';
     input.value = formattedValue;
   });
 
-  // Prevenir envío del formulario (aquí se integraría con el backend)
+  // Redirigir al usuario a CompraExitosa al pagar
   document.getElementById('payment-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    // Aquí iría la lógica de procesamiento del pago
-    alert('¡Procesando pago! Esta es una simulación.');
+    window.location.href = '/Cliente/CompraExitosaCliente';
   });
 </script>
 
